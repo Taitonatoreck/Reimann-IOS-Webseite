@@ -101,6 +101,51 @@ def breadcrumb_jsonld(path, title):
     }
 
 
+def arch_svg(cls):
+    """Zahnbogen mit Brackets und Bogendraht (Aufsicht) als Linienzeichnung."""
+    import math
+
+    def bez(t, p):
+        u = 1 - t
+        return (
+            u**3 * p[0][0] + 3 * u * u * t * p[1][0] + 3 * u * t * t * p[2][0] + t**3 * p[3][0],
+            u**3 * p[0][1] + 3 * u * u * t * p[1][1] + 3 * u * t * t * p[2][1] + t**3 * p[3][1],
+        )
+
+    teeth = [(30, 312), (18, -40), (382, -40), (370, 312)]
+    wire = teeth  # Draht läuft durch die Brackets auf den Zähnen
+    # gleichmäßig nach Bogenlänge verteilen
+    samples = [bez(i / 400, teeth) for i in range(401)]
+    acc = [0.0]
+    for a, b in zip(samples, samples[1:]):
+        acc.append(acc[-1] + math.dist(a, b))
+    n = 14
+    shapes = []
+    for k in range(n):
+        target = acc[-1] * (k + 0.5) / n
+        j = next(i for i, v in enumerate(acc) if v >= target)
+        (x, y), (x2, y2) = samples[j], samples[min(j + 1, 400)]
+        ang = math.degrees(math.atan2(y2 - y, x2 - x))
+        pos = abs(k - (n - 1) / 2) / ((n - 1) / 2)  # 0 = Schneidezahn, 1 = Molar
+        rx = 11 + 13 * pos ** 1.4
+        ry = 15 + 8 * pos
+        shapes.append(
+            f'<ellipse class="tooth" cx="{x:.1f}" cy="{y:.1f}" rx="{rx:.1f}" ry="{ry:.1f}" '
+            f'transform="rotate({ang:.1f} {x:.1f} {y:.1f})"/>'
+        )
+        bx, by = x, y
+        shapes.append(
+            f'<rect class="bracket" x="{bx - 5:.1f}" y="{by - 5:.1f}" width="10" height="10" rx="2" '
+            f'transform="rotate({ang:.1f} {bx:.1f} {by:.1f})"/>'
+        )
+    path = f'M{wire[0][0]},{wire[0][1]} C{wire[1][0]},{wire[1][1]} {wire[2][0]},{wire[2][1]} {wire[3][0]},{wire[3][1]}'
+    return (
+        f'<svg class="arch {cls}" viewBox="-10 -20 420 350" aria-hidden="true" focusable="false">'
+        + "".join(shapes)
+        + f'<path class="wire" d="{path}" pathLength="1"/></svg>'
+    )
+
+
 def layout(page, body):
     path = page["path"]
     canonical = SITE + path
@@ -118,23 +163,29 @@ def layout(page, body):
         for href, label in NAV
     )
 
+    # Farbiges Kopf-Band mit Brotkrumen, H1 und Einleitung (alle Seiten außer Start)
     crumbs = ""
     if path != "/":
+        lead = f'<p class="lead">{page["lead"]}</p>' if page.get("lead") else ""
         crumbs = (
-            '<nav class="breadcrumbs wrap" aria-label="Brotkrumen"><ol>'
+            '<section class="page-band"><div class="wrap">'
+            '<nav class="breadcrumbs" aria-label="Brotkrumen"><ol>'
             '<li><a href="/">Start</a></li>'
             f'<li aria-current="page">{e(page["crumb"])}</li></ol></nav>'
+            f'<h1>{page["h1"]}</h1>{lead}</div>'
+            f'{arch_svg("page-band-art")}</section>'
         )
 
     # „Weiter“-Link: nächste Seite im Seitenverlauf
     nxt = ""
     order = [h for h, _ in NAV]
     if path in order and path != order[-1]:
-        h, label = NAV[order.index(path) + 1]
+        i = order.index(path) + 1
+        h, label = NAV[i]
         nxt = (
-            '<div class="wrap"><div class="card card--link" style="margin-top:3rem;max-width:26rem">'
-            '<div class="meta">Weiter im Rundgang</div>'
-            f'<a href="{h}"><strong>{label} →</strong></a></div></div>'
+            '<div class="wrap"><div class="next card--link">'
+            f'<span class="next-step">Weiter · Schritt {i} von {len(NAV) - 1}</span>'
+            f'<a href="{h}">{label}<span aria-hidden="true"> →</span></a></div></div>'
         )
 
     return f"""<!doctype html>
@@ -157,6 +208,7 @@ def layout(page, body):
 <meta name="theme-color" content="#503b8a">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/style.css">
 <script>document.documentElement.classList.add("js")</script>
 <script src="/assets/main.js" defer></script>
@@ -178,8 +230,8 @@ def layout(page, body):
     </nav>
   </div>
 </header>
-{crumbs}
 <main id="inhalt">
+{crumbs}
 {body}
 {nxt}
 </main>
@@ -242,60 +294,78 @@ def pdf_link(file, label="Flyer"):
 # ---------------------------------------------------------------------------
 
 def page_start():
+    n_ref = len(load("referenten"))
+    n_sem = len(load("seminare"))
+    steps = [
+        ("/philosophie/", "Philosophie", "Warum ganzheitliche, interdisziplinäre Kieferorthopädie im Mittelpunkt steht."),
+        ("/veranstaltungen/", "Seminare &amp; Symposium", "Fortbildungen in Hannover und das Symposium in Prag – mit Online-Anmeldung."),
+        ("/archiv/", "Archiv seit 2000", f"{n_sem} Seminare und alle Symposien mit Flyern zum Nachlesen."),
+        ("/kontakt/", "Kontakt", "Fragen, Anmeldung, Feedback – oder Sie möchten selbst referieren."),
+    ]
+    step_cards = "\n".join(
+        f'<li class="step card--link"><span class="step-no">{i}</span>'
+        f'<h3><a href="{h}">{t}</a></h3><p>{d}</p></li>'
+        for i, (h, t, d) in enumerate(steps, 1)
+    )
     body = f"""
 <section class="hero">
-  <div class="wrap">
-    <p class="eyebrow">Fortbildung für Kieferorthopädie seit 2000</p>
-    <h1>Interdisziplinäre Kieferorthopädie – Wissenschaft trifft Praxis</h1>
-    <p class="lead">IOS Hannover lädt führende Expertinnen und Experten nach Hannover ein und
-    organisiert das International Orthodontic Symposium in Prag. Ziel ist der offene Austausch
-    zwischen Wissenschaft und Praxis – zum Wohl unserer Patientinnen und Patienten.</p>
-    <div class="actions">
-      <a class="btn" href="/veranstaltungen/">Aktuelle Veranstaltungen</a>
-      <a class="btn btn--ghost" href="/kontakt/">Kontakt aufnehmen</a>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">Fortbildung für Kieferorthopädie · Hannover &amp; Prag</p>
+      <h1>Kieferorthopädie, die über den Tellerrand blickt.</h1>
+      <p class="lead">Seit dem Jahr 2000 holt IOS Hannover führende Köpfe der Kieferorthopädie, Zahnmedizin
+      und Medizin an einen Tisch – in Seminaren in Hannover und beim International Orthodontic Symposium in Prag.</p>
+      <div class="actions">
+        <a class="btn btn--light" href="/veranstaltungen/">Veranstaltungen ansehen</a>
+        <a class="btn btn--outline" href="/kontakt/">Kontakt aufnehmen</a>
+      </div>
     </div>
+    {arch_svg("hero-art")}
+  </div>
+</section>
+
+<section class="stats" aria-label="IOS in Zahlen">
+  <div class="wrap">
+    <dl class="stats-grid">
+      <div><dt>gegründet</dt><dd>2000</dd></div>
+      <div><dt>Symposien in Prag</dt><dd>30</dd></div>
+      <div><dt>Referentinnen &amp; Referenten</dt><dd>{n_ref}</dd></div>
+      <div><dt>Teilnehmende aus</dt><dd>35+<small> Nationen</small></dd></div>
+    </dl>
   </div>
 </section>
 
 <div class="wrap">
   <section class="section">
-    <h2>Was Sie hier finden</h2>
-    <div class="grid">
-      <div class="card card--link">
-        <div class="meta">Schritt 1</div>
-        <h3><a href="/philosophie/">Unsere Philosophie</a></h3>
-        <p>Warum eine ganzheitliche, interdisziplinäre Kieferorthopädie im Mittelpunkt steht.</p>
-      </div>
-      <div class="card card--link">
-        <div class="meta">Schritt 2</div>
-        <h3><a href="/veranstaltungen/">Seminare &amp; Symposium</a></h3>
-        <p>Fortbildungen in Hannover und das International Orthodontic Symposium in Prag.</p>
-      </div>
-      <div class="card card--link">
-        <div class="meta">Schritt 3</div>
-        <h3><a href="/archiv/">Archiv seit 2000</a></h3>
-        <p>Alle bisherigen Kongresse und Seminare mit Flyern zum Nachlesen.</p>
-      </div>
-      <div class="card card--link">
-        <div class="meta">Schritt 4</div>
-        <h3><a href="/kontakt/">Kontakt</a></h3>
-        <p>Fragen, Anmeldung, Feedback – oder Sie möchten selbst referieren.</p>
+    <p class="kicker">Ihr Rundgang</p>
+    <h2>In vier Schritten durch IOS Hannover</h2>
+    <ol class="steps">
+{step_cards}
+    </ol>
+  </section>
+
+  <section class="feature">
+    <div class="feature-copy">
+      <p class="kicker">International Orthodontic Symposium</p>
+      <h2>Zwei Tage Prag. Ein Fach, viele Perspektiven.</h2>
+      <p>Das IOS Prague bringt jedes Jahr Kolleginnen und Kollegen aus über 35 Nationen zusammen – mit
+      Vorträgen internationaler Referenten, Zeit für Austausch und einem Get-Together in einem
+      traditionellen Prager Gasthaus.</p>
+      <div class="actions">
+        <a class="btn btn--light" href="{PRAGUE}" rel="noopener">Zur Website von IOS Prague</a>
+        <a class="btn btn--outline" href="/archiv/#kongresse">Frühere Symposien</a>
       </div>
     </div>
+    <dl class="facts">
+      <div><dt>Zuletzt</dt><dd>30. Symposium · 29.–30. Mai 2026</dd></div>
+      <div><dt>Ort</dt><dd>Hotel Josef, Prager Altstadt</dd></div>
+      <div><dt>Themen 2026</dt><dd>Aligner-Therapie, digitale Workflows, Kiefergelenk</dd></div>
+      <div><dt>Fortbildungspunkte</dt><dd>9 internationale / 12 deutsche CE-Punkte</dd></div>
+    </dl>
   </section>
 
   <section class="section">
-    <h2>International Orthodontic Symposium in Prag</h2>
-    <p class="prose">Das IOS Prague bringt jedes Jahr Kieferorthopädinnen und Kieferorthopäden aus über
-    35 Nationen zusammen. 2026 fand das 30. Symposium am 29. und 30. Mai im Hotel Josef in der
-    Prager Altstadt statt. Programm und Termine zum nächsten Symposium finden Sie auf der
-    Symposium-Website.</p>
-    <div class="actions">
-      <a class="btn btn--ghost" href="{PRAGUE}" rel="noopener">Zur Website von IOS Prague</a>
-    </div>
-  </section>
-
-  <section class="section">
+    <p class="kicker">Mit freundlicher Unterstützung</p>
     <h2>Partner</h2>
     <ul class="toc">
       <li><a href="https://www.kfobb.de/" rel="noopener">KFO Berlin-Brandenburg</a></li>
@@ -320,10 +390,6 @@ def page_start():
 def page_philosophie():
     body = """
 <div class="wrap">
-  <header class="page-head">
-    <h1>Unsere Philosophie</h1>
-    <p class="lead">Moderne Kieferorthopädie gelingt am besten im Team – über Fachgrenzen hinweg.</p>
-  </header>
   <div class="prose">
     <p>Der Gründer des Arbeitskreises für Biosystemische Zahnheilkunde, <strong>Dr. Jan V. Raiman</strong>,
     ist bekannt als Verfechter einer modernen, ganzheitlich ausgerichteten Kieferorthopädie, die
@@ -350,6 +416,7 @@ def page_philosophie():
 </div>
 """
     return {
+        "h1": f"""Unsere Philosophie""", "lead": f"""Moderne Kieferorthopädie gelingt am besten im Team – über Fachgrenzen hinweg.""",
         "path": "/philosophie/", "crumb": "Philosophie",
         "title": "Philosophie – interdisziplinäre Kieferorthopädie | IOS Hannover",
         "description": "Ganzheitliche, interdisziplinäre Kieferorthopädie: Wie IOS Hannover Wissenschaft und Praxis verbindet und führende Experten nach Hannover holt.",
@@ -360,11 +427,6 @@ def page_philosophie():
 def page_veranstaltungen():
     body = f"""
 <div class="wrap">
-  <header class="page-head">
-    <h1>Seminare &amp; Symposium</h1>
-    <p class="lead">Fortbildungen in Hannover und das International Orthodontic Symposium in Prag –
-    Anmeldung bequem online.</p>
-  </header>
   <ul class="toc" aria-label="Auf dieser Seite">
     <li><a href="#seminare">Seminare in Hannover</a></li>
     <li><a href="#symposium">Symposium in Prag</a></li>
@@ -405,6 +467,7 @@ def page_veranstaltungen():
 </div>
 """
     return {
+        "h1": f"""Seminare &amp; Symposium""", "lead": f"""Fortbildungen in Hannover und das International Orthodontic Symposium in Prag – Anmeldung bequem online.""",
         "path": "/veranstaltungen/", "crumb": "Veranstaltungen",
         "title": "Seminare & Symposium – Fortbildung Kieferorthopädie | IOS Hannover",
         "description": "Kieferorthopädische Seminare in Hannover und das International Orthodontic Symposium in Prag: Termine, Anmeldung und Infos für Referenten.",
@@ -436,14 +499,10 @@ def page_archiv():
             + "</span></li>"
             for s in items
         )
-        s_html += f'<h3 class="year-head">{year}</h3>\n<ul class="list">{rows}</ul>\n'
+        s_html += f'<h3 class="year-head">{year}</h3>\n<ul class="list list--timeline">{rows}</ul>\n'
 
     body = f"""
 <div class="wrap">
-  <header class="page-head">
-    <h1>Archiv: Kongresse &amp; Seminare</h1>
-    <p class="lead">Alle bisherigen Veranstaltungen von IOS Hannover seit dem Jahr 2000.</p>
-  </header>
   <ul class="toc" aria-label="Auf dieser Seite">
     <li><a href="#kongresse">Kongresse ({len(kongresse)})</a></li>
     <li><a href="#seminare">Seminare ({len(seminare)})</a></li>
@@ -452,7 +511,7 @@ def page_archiv():
 
   <section class="section" id="kongresse">
     <h2>International Orthodontic Symposium</h2>
-    <ul class="list">
+    <ul class="list list--timeline">
 {k_items}
     </ul>
   </section>
@@ -464,6 +523,7 @@ def page_archiv():
 </div>
 """
     return {
+        "h1": f"""Archiv: Kongresse &amp; Seminare""", "lead": f"""Alle bisherigen Veranstaltungen von IOS Hannover seit dem Jahr 2000.""",
         "path": "/archiv/", "crumb": "Archiv",
         "title": "Archiv: Kongresse & Seminare seit 2000 | IOS Hannover",
         "description": "Alle International Orthodontic Symposien in Prag und Seminare von IOS Hannover seit 2000 – mit Referenten, Orten und Flyern als PDF.",
@@ -487,6 +547,14 @@ def sort_key(name):
     return last.lower().translate(str.maketrans("äöüčďš", "aoucds"))
 
 
+def initials(name):
+    skip = {"dr.", "prof.", "pd", "ass.", "h.c.", "med."}
+    words = [w for w in name.replace(",", " ").split() if w.lower() not in skip and w[0].isupper()]
+    last = sort_key(name)
+    first = words[0][0] if words else ""
+    return e(first + last[0].upper())
+
+
 def page_referenten():
     people = load("referenten")
     people.sort(key=lambda p: (sort_key(p["name"]), p["name"]))
@@ -507,19 +575,15 @@ def page_referenten():
     blocks = ""
     for k, items in groups.items():
         lis = "\n".join(
-            f'<li data-person><span class="name">{e(p["name"])}</span>'
-            f'<span class="events">{events(p)}</span></li>'
+            f'<li data-person><span class="avatar" aria-hidden="true">{initials(p["name"])}</span>'
+            f'<span><span class="name">{e(p["name"])}</span>'
+            f'<span class="events">{events(p)}</span></span></li>'
             for p in items
         )
         blocks += f'<section class="letter-group" id="buchstabe-{k}"><h2>{k}</h2><ul class="people">{lis}</ul></section>\n'
 
     body = f"""
 <div class="wrap">
-  <header class="page-head">
-    <h1>Unsere Referentinnen und Referenten</h1>
-    <p class="lead">Wir danken den {len(people)} Referentinnen und Referenten, die uns seit 2000 mit
-    fachkundigen und lebendigen Vorträgen wertvolles Wissen vermittelt haben.</p>
-  </header>
   <div class="filter" role="search">
     <label for="speaker-filter">Suchen</label>
     <input id="speaker-filter" type="search" placeholder="Name, Ort oder Jahr – z. B. „Prag 2012“" autocomplete="off">
@@ -531,6 +595,7 @@ def page_referenten():
 </div>
 """
     return {
+        "h1": f"""Unsere Referentinnen und Referenten""", "lead": f"""Wir danken den {len(people)} Referentinnen und Referenten, die uns seit 2000 mit fachkundigen und lebendigen Vorträgen wertvolles Wissen vermittelt haben.""",
         "path": "/referenten/", "crumb": "Referenten",
         "title": "Referenten seit 2000 – Kieferorthopädie-Experten | IOS Hannover",
         "description": f"Alle {len(people)} Referentinnen und Referenten der IOS-Seminare und -Symposien seit 2000 – durchsuchbar nach Name, Ort und Jahr.",
@@ -549,10 +614,6 @@ def page_presse():
     )
     body = f"""
 <div class="wrap">
-  <header class="page-head">
-    <h1>Presseberichte</h1>
-    <p class="lead">Was Fachmedien über die Seminare und Symposien von IOS Hannover geschrieben haben.</p>
-  </header>
   <ul class="list">
 {rows}
   </ul>
@@ -561,6 +622,7 @@ def page_presse():
 </div>
 """
     return {
+        "h1": f"""Presseberichte""", "lead": f"""Was Fachmedien über die Seminare und Symposien von IOS Hannover geschrieben haben.""",
         "path": "/presse/", "crumb": "Presse",
         "title": "Presseberichte über IOS Hannover & IOS Prague",
         "description": "Presseberichte aus Fachmedien (DZW, KN, ZKN, KFO Zeitung) über die Seminare von IOS Hannover und das International Orthodontic Symposium in Prag.",
@@ -576,10 +638,6 @@ def page_fotogalerie():
     )
     body = f"""
 <div class="wrap">
-  <header class="page-head">
-    <h1>Fotogalerie</h1>
-    <p class="lead">Bilder unserer Seminare und Symposien.</p>
-  </header>
   <div class="prose">
     <p>Zum Schutz der Persönlichkeitsrechte unserer Teilnehmenden versenden wir den Zugang zu den
     Fotogalerien nur an uns bekannte Personen.</p>
@@ -590,6 +648,7 @@ def page_fotogalerie():
 </div>
 """
     return {
+        "h1": f"""Fotogalerie""", "lead": f"""Bilder unserer Seminare und Symposien.""",
         "path": "/fotogalerie/", "crumb": "Fotogalerie", "nav": "/archiv/",
         "title": "Fotogalerie – Zugang anfordern | IOS Hannover",
         "description": "Fotos der Seminare und Symposien von IOS Hannover: Teilnehmende können den Zugang zur Fotogalerie per E-Mail anfordern.",
@@ -617,10 +676,6 @@ def page_kontakt():
 
     body = f"""
 <div class="wrap">
-  <header class="page-head">
-    <h1>Kontakt</h1>
-    <p class="lead">Fragen zu Seminaren, zur Anmeldung oder zum Symposium? Wir sind gern für Sie da.</p>
-  </header>
 
   <div class="contact-main">
     <div class="card">
@@ -677,6 +732,7 @@ def page_kontakt():
         "telephone": ORG["phone"], "email": ORG["email"], "availableLanguage": ["de", "en"],
     }]
     return {
+        "h1": f"""Kontakt""", "lead": f"""Fragen zu Seminaren, zur Anmeldung oder zum Symposium? Wir sind gern für Sie da.""",
         "path": "/kontakt/", "crumb": "Kontakt",
         "title": "Kontakt – IOS Hannover | Interdisciplinary Orthodontic Seminars",
         "description": "Kontakt zu IOS Hannover: Sutelstraße 2, 30659 Hannover, Tel. +49 511 5331693, info@ios-hannover.de – Anmeldung, Referentenanfragen und Feedback.",
@@ -690,7 +746,6 @@ def page_kontakt():
 def page_impressum():
     body = f"""
 <div class="wrap">
-  <header class="page-head"><h1>Impressum</h1></header>
   <div class="prose">
     <h2>Angaben gemäß § 5 DDG</h2>
     <p>Dr. Jan V. Raiman<br>IOS Hannover<br>{ORG["street"]}<br>{ORG["zip"]} {ORG["city"]}</p>
@@ -726,6 +781,7 @@ def page_impressum():
 </div>
 """
     return {
+        "h1": f"""Impressum""", "lead": f"""""",
         "path": "/impressum/", "crumb": "Impressum", "noindex": True, "nav": None,
         "title": "Impressum | IOS Hannover",
         "description": "Impressum von IOS Hannover – Dr. Jan V. Raiman, Sutelstraße 2, 30659 Hannover.",
@@ -736,9 +792,6 @@ def page_impressum():
 def page_datenschutz():
     body = f"""
 <div class="wrap">
-  <header class="page-head"><h1>Datenschutzerklärung</h1>
-  <p class="lead">Kurz gesagt: Diese Website setzt keine Cookies, verwendet kein Tracking und lädt keine
-  Inhalte von Drittanbietern.</p></header>
   <div class="prose">
     <h2>1. Verantwortliche Stelle</h2>
     <p>IOS Hannover<br>Dr. Jan V. Raiman<br>{ORG["street"]}<br>{ORG["zip"]} {ORG["city"]}<br>
@@ -779,6 +832,7 @@ def page_datenschutz():
 </div>
 """
     return {
+        "h1": f"""Datenschutzerklärung""", "lead": f"""Kurz gesagt: Diese Website setzt keine Cookies, verwendet kein Tracking und lädt keine Inhalte von Drittanbietern.""",
         "path": "/datenschutz/", "crumb": "Datenschutz", "noindex": True, "nav": None,
         "title": "Datenschutz | IOS Hannover",
         "description": "Datenschutzerklärung von IOS Hannover: keine Cookies, kein Tracking.",
@@ -789,10 +843,6 @@ def page_datenschutz():
 def page_404():
     body = """
 <div class="wrap">
-  <header class="page-head">
-    <h1>Seite nicht gefunden</h1>
-    <p class="lead">Die gesuchte Seite gibt es nicht (mehr). Vielleicht hilft Ihnen einer dieser Links weiter:</p>
-  </header>
   <ul class="toc">
     <li><a href="/">Startseite</a></li>
     <li><a href="/veranstaltungen/">Veranstaltungen</a></li>
@@ -802,6 +852,7 @@ def page_404():
 </div>
 """
     return {
+        "h1": f"""Seite nicht gefunden""", "lead": f"""Die gesuchte Seite gibt es nicht (mehr). Vielleicht hilft Ihnen einer dieser Links weiter:""",
         "path": "/404.html", "crumb": "Nicht gefunden", "noindex": True, "nav": None, "file": "404.html",
         "title": "Seite nicht gefunden | IOS Hannover",
         "description": "Diese Seite wurde nicht gefunden.",
