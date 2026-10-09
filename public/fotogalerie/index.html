@@ -21,10 +21,11 @@
 <link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/style.css">
 <script>document.documentElement.classList.add("js")</script>
+<script src="/assets/lenis.min.js" defer></script>
 <script src="/assets/main.js" defer></script>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Start", "item": "https://www.ios-hannover.de/"}, {"@type": "ListItem", "position": 2, "name": "Fotogalerie", "item": "https://www.ios-hannover.de/fotogalerie/"}]}</script>
 </head>
-<body>
+<body class="">
 <a class="skip" href="#inhalt">Zum Inhalt springen</a>
 <header class="site-header">
   <div class="wrap">
@@ -32,22 +33,51 @@
       <span class="brand-mark" aria-hidden="true">IOS</span>
       <span class="brand-text"><strong>IOS Hannover</strong><small>Interdisciplinary Orthodontic Seminars</small></span>
     </a>
-    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Menü</button>
-    <nav class="site-nav" id="site-nav" aria-label="Hauptnavigation">
-      <ul>
-<li><a href="/">Start</a></li>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="menu">
+      <span class="burger-label">Menü</span>
+      <span class="burger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+  </div>
+  <div class="scroll-progress" aria-hidden="true"><span></span></div>
+</header>
+<div class="menu" id="menu" aria-label="Menü">
+  <div class="menu-inner wrap">
+    <nav class="menu-stations" aria-label="Hauptnavigation">
+      <p class="menu-kicker">Rundgang</p>
+      <ol>
+<li style="--i:0"><a href="/#start" data-station="start"><span class="menu-no">01</span><span class="menu-label">Willkommen</span></a></li>
+<li style="--i:1"><a href="/#philosophie" data-station="philosophie"><span class="menu-no">02</span><span class="menu-label">Philosophie</span></a></li>
+<li style="--i:2"><a href="/#geschichte" data-station="geschichte"><span class="menu-no">03</span><span class="menu-label">Geschichte</span></a></li>
+<li style="--i:3"><a href="/#veranstaltungen" data-station="veranstaltungen"><span class="menu-no">04</span><span class="menu-label">Veranstaltungen</span></a></li>
+<li style="--i:4"><a href="/#referenten" data-station="referenten"><span class="menu-no">05</span><span class="menu-label">Referenten</span></a></li>
+<li style="--i:5"><a href="/#presse" data-station="presse"><span class="menu-no">06</span><span class="menu-label">Presse</span></a></li>
+<li style="--i:6"><a href="/#kontakt" data-station="kontakt"><span class="menu-no">07</span><span class="menu-label">Kontakt</span></a></li>
+      </ol>
+    </nav>
+    <div class="menu-side">
+      <nav aria-label="Ausführliche Seiten">
+        <p class="menu-kicker">Ausführlich</p>
+        <ul class="menu-details">
 <li><a href="/philosophie/">Philosophie</a></li>
 <li><a href="/veranstaltungen/">Veranstaltungen</a></li>
 <li><a href="/archiv/" aria-current="page">Archiv</a></li>
 <li><a href="/referenten/">Referenten</a></li>
 <li><a href="/presse/">Presse</a></li>
 <li><a href="/kontakt/">Kontakt</a></li>
-      </ul>
-    </nav>
+<li><a href="/fotogalerie/">Fotogalerie</a></li>
+        </ul>
+      </nav>
+      <div class="menu-contact">
+        <p class="menu-kicker">Kontakt</p>
+        <p><a href="tel:+495115331693">+49 511 / 5 33 16 93</a><br>
+        <a href="mailto:info@ios-hannover.de">info@ios-hannover.de</a><br>
+        Sutelstraße 2, 30659 Hannover</p>
+      </div>
+    </div>
   </div>
-</header>
+</div>
 <main id="inhalt">
-<section class="page-band"><div class="wrap"><nav class="breadcrumbs" aria-label="Brotkrumen"><ol><li><a href="/">Start</a></li><li aria-current="page">Fotogalerie</li></ol></nav><h1>Fotogalerie</h1><p class="lead">Bilder unserer Seminare und Symposien.</p></div><svg class="arch page-band-art" viewBox="-10 -20 420 350" aria-hidden="true" focusable="false"><ellipse class="tooth" cx="29.8" cy="286.3" rx="24.0" ry="23.0" transform="rotate(-88.8 29.8 286.3)"/><rect class="bracket" x="24.8" y="281.3" width="10" height="10" rx="2" transform="rotate(-88.8 29.8 286.3)"/><ellipse class="tooth" cx="33.6" cy="236.5" rx="21.3" ry="21.8" transform="rotate(-81.8 33.6 236.5)"/><rect class="bracket" x="28.6" y="231.5" width="10" height="10" rx="2" transform="rotate(-81.8 33.6 236.5)"/><ellipse class="tooth" cx="44.4" cy="186.8" rx="18.8" ry="20.5" transform="rotate(-73.0 44.4 186.8)"/><rect class="bracket" x="39.4" y="181.8" width="10" height="10" rx="2" transform="rotate(-73.0 44.4 186.8)"/><ellipse class="tooth" cx="62.7" cy="141.5" rx="16.5" ry="19.3" transform="rotate(-62.2 62.7 141.5)"/><rect class="bracket" x="57.7" y="136.5" width="10" height="10" rx="2" transform="rotate(-62.2 62.7 141.5)"/><ellipse class="tooth" cx="90.8" cy="100.3" rx="14.4" ry="18.1" transform="rotate(-48.2 90.8 100.3)"/><rect class="bracket" x="85.8" y="95.3" width="10" height="10" rx="2" transform="rotate(-48.2 90.8 100.3)"/><ellipse class="tooth" cx="129.4" cy="68.0" rx="12.7" ry="16.8" transform="rotate(-30.6 129.4 68.0)"/><rect class="bracket" x="124.4" y="63.0" width="10" height="10" rx="2" transform="rotate(-30.6 129.4 68.0)"/><ellipse class="tooth" cx="176.3" cy="50.1" rx="11.4" ry="15.6" transform="rotate(-10.0 176.3 50.1)"/><rect class="bracket" x="171.3" y="45.1" width="10" height="10" rx="2" transform="rotate(-10.0 176.3 50.1)"/><ellipse class="tooth" cx="225.0" cy="50.4" rx="11.4" ry="15.6" transform="rotate(11.1 225.0 50.4)"/><rect class="bracket" x="220.0" y="45.4" width="10" height="10" rx="2" transform="rotate(11.1 225.0 50.4)"/><ellipse class="tooth" cx="271.9" cy="68.7" rx="12.7" ry="16.8" transform="rotate(31.7 271.9 68.7)"/><rect class="bracket" x="266.9" y="63.7" width="10" height="10" rx="2" transform="rotate(31.7 271.9 68.7)"/><ellipse class="tooth" cx="310.2" cy="101.5" rx="14.4" ry="18.1" transform="rotate(49.2 310.2 101.5)"/><rect class="bracket" x="305.2" y="96.5" width="10" height="10" rx="2" transform="rotate(49.2 310.2 101.5)"/><ellipse class="tooth" cx="338.1" cy="143.0" rx="16.5" ry="19.3" transform="rotate(63.1 338.1 143.0)"/><rect class="bracket" x="333.1" y="138.0" width="10" height="10" rx="2" transform="rotate(63.1 338.1 143.0)"/><ellipse class="tooth" cx="356.2" cy="188.7" rx="18.8" ry="20.5" transform="rotate(73.8 356.2 188.7)"/><rect class="bracket" x="351.2" y="183.7" width="10" height="10" rx="2" transform="rotate(73.8 356.2 188.7)"/><ellipse class="tooth" cx="366.7" cy="238.7" rx="21.3" ry="21.8" transform="rotate(82.5 366.7 238.7)"/><rect class="bracket" x="361.7" y="233.7" width="10" height="10" rx="2" transform="rotate(82.5 366.7 238.7)"/><ellipse class="tooth" cx="370.2" cy="288.8" rx="24.0" ry="23.0" transform="rotate(89.4 370.2 288.8)"/><rect class="bracket" x="365.2" y="283.8" width="10" height="10" rx="2" transform="rotate(89.4 370.2 288.8)"/><path class="wire" d="M30,312 C18,-40 382,-40 370,312" pathLength="1"/></svg></section>
+<section class="page-band"><div class="wrap"><nav class="breadcrumbs" aria-label="Brotkrumen"><ol><li><a href="/">Start</a></li><li aria-current="page">Fotogalerie</li></ol></nav><h1>Fotogalerie</h1><p class="lead">Bilder unserer Seminare und Symposien.</p></div><svg class="arch page-band-art" viewBox="-10 -20 420 350" aria-hidden="true" focusable="false"><g transform="rotate(-88.8 29.8 286.3)"><ellipse class="tooth" style="--d:6" cx="29.8" cy="286.3" rx="24.0" ry="23.0"/></g><rect class="bracket" style="--d:6" x="24.8" y="281.3" width="10" height="10" rx="2" transform="rotate(-88.8 29.8 286.3)"/><g transform="rotate(-81.8 33.6 236.5)"><ellipse class="tooth" style="--d:6" cx="33.6" cy="236.5" rx="21.3" ry="21.8"/></g><rect class="bracket" style="--d:6" x="28.6" y="231.5" width="10" height="10" rx="2" transform="rotate(-81.8 33.6 236.5)"/><g transform="rotate(-73.0 44.4 186.8)"><ellipse class="tooth" style="--d:4" cx="44.4" cy="186.8" rx="18.8" ry="20.5"/></g><rect class="bracket" style="--d:4" x="39.4" y="181.8" width="10" height="10" rx="2" transform="rotate(-73.0 44.4 186.8)"/><g transform="rotate(-62.2 62.7 141.5)"><ellipse class="tooth" style="--d:4" cx="62.7" cy="141.5" rx="16.5" ry="19.3"/></g><rect class="bracket" style="--d:4" x="57.7" y="136.5" width="10" height="10" rx="2" transform="rotate(-62.2 62.7 141.5)"/><g transform="rotate(-48.2 90.8 100.3)"><ellipse class="tooth" style="--d:2" cx="90.8" cy="100.3" rx="14.4" ry="18.1"/></g><rect class="bracket" style="--d:2" x="85.8" y="95.3" width="10" height="10" rx="2" transform="rotate(-48.2 90.8 100.3)"/><g transform="rotate(-30.6 129.4 68.0)"><ellipse class="tooth" style="--d:2" cx="129.4" cy="68.0" rx="12.7" ry="16.8"/></g><rect class="bracket" style="--d:2" x="124.4" y="63.0" width="10" height="10" rx="2" transform="rotate(-30.6 129.4 68.0)"/><g transform="rotate(-10.0 176.3 50.1)"><ellipse class="tooth" style="--d:0" cx="176.3" cy="50.1" rx="11.4" ry="15.6"/></g><rect class="bracket" style="--d:0" x="171.3" y="45.1" width="10" height="10" rx="2" transform="rotate(-10.0 176.3 50.1)"/><g transform="rotate(11.1 225.0 50.4)"><ellipse class="tooth" style="--d:0" cx="225.0" cy="50.4" rx="11.4" ry="15.6"/></g><rect class="bracket" style="--d:0" x="220.0" y="45.4" width="10" height="10" rx="2" transform="rotate(11.1 225.0 50.4)"/><g transform="rotate(31.7 271.9 68.7)"><ellipse class="tooth" style="--d:2" cx="271.9" cy="68.7" rx="12.7" ry="16.8"/></g><rect class="bracket" style="--d:2" x="266.9" y="63.7" width="10" height="10" rx="2" transform="rotate(31.7 271.9 68.7)"/><g transform="rotate(49.2 310.2 101.5)"><ellipse class="tooth" style="--d:2" cx="310.2" cy="101.5" rx="14.4" ry="18.1"/></g><rect class="bracket" style="--d:2" x="305.2" y="96.5" width="10" height="10" rx="2" transform="rotate(49.2 310.2 101.5)"/><g transform="rotate(63.1 338.1 143.0)"><ellipse class="tooth" style="--d:4" cx="338.1" cy="143.0" rx="16.5" ry="19.3"/></g><rect class="bracket" style="--d:4" x="333.1" y="138.0" width="10" height="10" rx="2" transform="rotate(63.1 338.1 143.0)"/><g transform="rotate(73.8 356.2 188.7)"><ellipse class="tooth" style="--d:4" cx="356.2" cy="188.7" rx="18.8" ry="20.5"/></g><rect class="bracket" style="--d:4" x="351.2" y="183.7" width="10" height="10" rx="2" transform="rotate(73.8 356.2 188.7)"/><g transform="rotate(82.5 366.7 238.7)"><ellipse class="tooth" style="--d:6" cx="366.7" cy="238.7" rx="21.3" ry="21.8"/></g><rect class="bracket" style="--d:6" x="361.7" y="233.7" width="10" height="10" rx="2" transform="rotate(82.5 366.7 238.7)"/><g transform="rotate(89.4 370.2 288.8)"><ellipse class="tooth" style="--d:6" cx="370.2" cy="288.8" rx="24.0" ry="23.0"/></g><rect class="bracket" style="--d:6" x="365.2" y="283.8" width="10" height="10" rx="2" transform="rotate(89.4 370.2 288.8)"/><path class="wire" d="M30,312 C18,-40 382,-40 370,312" pathLength="1"/></svg></section>
 
 <div class="wrap">
   <div class="prose">
