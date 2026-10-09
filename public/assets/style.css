@@ -1,0 +1,282 @@
+/* IOS Hannover – schlichtes, ruhiges Layout.
+   Systemschriften (keine externen Fonts → schnell & DSGVO-freundlich). */
+
+:root {
+  --brand: #503b8a;
+  --brand-ink: #3d2c6d;
+  --brand-soft: #f1eef8;
+  --ink: #1d1b22;
+  --ink-2: #55525e;
+  --line: #e4e1ea;
+  --bg: #ffffff;
+  --bg-2: #f8f7fa;
+
+  --radius: 10px;
+  --wrap: 68rem;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 5rem; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--ink);
+  background: var(--bg);
+  text-rendering: optimizeLegibility;
+}
+
+img { max-width: 100%; height: auto; }
+
+a { color: var(--brand); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+a:hover { color: var(--brand-ink); }
+
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 4px; }
+
+h1, h2, h3 { line-height: 1.25; letter-spacing: -0.01em; color: var(--ink); }
+h1 { font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.6rem); margin: 0 0 0.75rem; }
+h2 { font-size: 1.45rem; margin: 2.5rem 0 0.75rem; }
+h3 { font-size: 1.1rem; margin: 1.5rem 0 0.25rem; }
+p { margin: 0 0 1rem; }
+
+.wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 1rem; }
+@media (min-width: 40rem) { .wrap { padding: 0 1.5rem; } }
+
+.skip {
+  position: absolute; left: 1rem; top: -3rem;
+  background: var(--brand); color: #fff; padding: 0.5rem 0.9rem; border-radius: 6px; z-index: 50;
+}
+.skip:focus { top: 0.75rem; }
+
+/* ---------- Kopfbereich ---------- */
+
+.site-header {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(1.4) blur(8px);
+  -webkit-backdrop-filter: saturate(1.4) blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4rem; }
+
+.brand { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; color: var(--ink); }
+.brand-mark {
+  display: grid; place-items: center;
+  width: 2.25rem; height: 2.25rem; border-radius: 8px;
+  background: var(--brand); color: #fff; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em;
+}
+.brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+.brand-text strong { font-size: 1rem; }
+.brand-text small { font-size: 0.75rem; color: var(--ink-2); }
+
+.nav-toggle {
+  display: none;
+  align-items: center; gap: 0.5rem;
+  font: inherit; font-size: 0.95rem; font-weight: 600;
+  color: var(--ink); background: var(--bg-2);
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 0.45rem 0.8rem; cursor: pointer;
+  transition: transform 160ms var(--ease-out);
+}
+.nav-toggle:active { transform: scale(0.97); }
+.nav-toggle svg { width: 1.1rem; height: 1.1rem; }
+
+.site-nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 0.25rem; }
+.site-nav a {
+  display: block; padding: 0.45rem 0.7rem; border-radius: 8px;
+  color: var(--ink-2); text-decoration: none; font-size: 0.95rem; font-weight: 500;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.site-nav a[aria-current="page"] { color: var(--brand); background: var(--brand-soft); }
+@media (hover: hover) and (pointer: fine) {
+  .site-nav a:hover { color: var(--ink); background: var(--bg-2); }
+  .site-nav a[aria-current="page"]:hover { color: var(--brand); background: var(--brand-soft); }
+}
+
+/* Mobiles Menü: klappt vom Button (oben rechts) aus auf. */
+@media (max-width: 56rem) {
+  .js .nav-toggle { display: inline-flex; }
+  .site-header .wrap { position: relative; }
+  .js .site-nav {
+    position: absolute; right: 1rem; top: calc(100% + 0.5rem);
+    min-width: 15rem;
+    background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: 0 12px 32px rgba(29, 27, 34, 0.12);
+    padding: 0.4rem;
+    transform-origin: top right;
+    opacity: 0; transform: translateY(-4px) scale(0.97); visibility: hidden;
+    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out), visibility 0s linear 180ms;
+  }
+  .js .site-nav.is-open {
+    opacity: 1; transform: none; visibility: visible;
+    transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out), visibility 0s;
+  }
+  .site-nav ul { flex-direction: column; }
+  .site-nav a { padding: 0.65rem 0.8rem; font-size: 1rem; }
+  /* Ohne JavaScript: Navigation einfach umbrechen lassen */
+  html:not(.js) .site-header .wrap { flex-wrap: wrap; padding-bottom: 0.5rem; }
+  html:not(.js) .site-nav ul { flex-direction: row; flex-wrap: wrap; }
+}
+
+/* ---------- Brotkrumen ---------- */
+
+.breadcrumbs { font-size: 0.875rem; color: var(--ink-2); padding-top: 1.25rem; }
+.breadcrumbs ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.breadcrumbs li + li::before { content: "›"; margin-right: 0.35rem; color: #a5a1ad; }
+.breadcrumbs a { color: var(--ink-2); text-decoration: none; }
+.breadcrumbs a:hover { color: var(--brand); text-decoration: underline; }
+
+/* ---------- Inhalt ---------- */
+
+main { display: block; padding-bottom: 4rem; }
+.page-head { padding: 1.25rem 0 0.5rem; max-width: 46rem; }
+.lead { font-size: 1.15rem; color: var(--ink-2); }
+.prose { max-width: 46rem; }
+
+.hero { padding: 3.5rem 0 2.5rem; border-bottom: 1px solid var(--line); background: linear-gradient(180deg, var(--brand-soft), #fff); }
+.hero .eyebrow { font-size: 0.85rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--brand); margin-bottom: 0.5rem; }
+.hero h1 { max-width: 40rem; }
+.hero .lead { max-width: 40rem; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.7rem 1.15rem; border-radius: 8px;
+  font: inherit; font-size: 0.975rem; font-weight: 600; text-decoration: none;
+  background: var(--brand); color: #fff; border: 1px solid var(--brand);
+  transition: transform 160ms var(--ease-out), background-color 150ms ease;
+}
+.btn:hover { color: #fff; }
+.btn:active { transform: scale(0.97); }
+.btn--ghost { background: #fff; color: var(--brand); border-color: var(--line); }
+.btn--ghost:hover { color: var(--brand-ink); }
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover { background: var(--brand-ink); }
+  .btn--ghost:hover { background: var(--bg-2); }
+}
+
+.grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); margin-top: 1rem; }
+
+.card {
+  position: relative;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 1.25rem; background: #fff;
+}
+.card h2, .card h3 { margin-top: 0; font-size: 1.1rem; }
+.card p:last-child { margin-bottom: 0; }
+.card .meta { font-size: 0.875rem; color: var(--ink-2); margin-bottom: 0.4rem; }
+
+/* Ganze Karte klickbar, ohne verschachtelte Links */
+.card--link { transition: border-color 150ms ease, transform 160ms var(--ease-out); }
+.card--link a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.card--link:active { transform: scale(0.99); }
+.card--link a { text-decoration: none; }
+@media (hover: hover) and (pointer: fine) {
+  .card--link:hover { border-color: #c9c2dc; }
+  .card--link:hover a { text-decoration: underline; }
+}
+
+.note {
+  border-left: 3px solid var(--brand); background: var(--brand-soft);
+  padding: 0.9rem 1.1rem; border-radius: 0 var(--radius) var(--radius) 0; margin: 1.25rem 0;
+}
+.note p:last-child { margin-bottom: 0; }
+
+.section { padding-top: 1rem; }
+.section + .section { border-top: 1px solid var(--line); margin-top: 2.5rem; padding-top: 0.5rem; }
+
+/* Sprungmarken innerhalb einer Seite */
+.toc { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0 0.5rem; padding: 0; list-style: none; }
+.toc a {
+  display: inline-block; padding: 0.35rem 0.75rem; border-radius: 999px;
+  border: 1px solid var(--line); font-size: 0.9rem; text-decoration: none; color: var(--ink-2);
+  transition: transform 160ms var(--ease-out), border-color 150ms ease;
+}
+.toc a:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .toc a:hover { border-color: var(--brand); color: var(--brand); } }
+
+/* ---------- Listen (Archiv, Presse) ---------- */
+
+.list { list-style: none; margin: 0.5rem 0 0; padding: 0; border-top: 1px solid var(--line); }
+.list > li {
+  display: grid; gap: 0.15rem 1.5rem; padding: 1rem 0; border-bottom: 1px solid var(--line);
+}
+@media (min-width: 44rem) { .list > li { grid-template-columns: 11rem 1fr; } }
+.list .when { font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: 0.925rem; }
+.list .what { font-weight: 600; }
+.list .who, .list .where { color: var(--ink-2); font-size: 0.95rem; }
+.list .pdf { font-size: 0.9rem; }
+.year-head { font-size: 1rem; color: var(--brand); margin: 2rem 0 0; letter-spacing: 0.02em; }
+
+.pdf-link::after { content: " (PDF)"; color: var(--ink-2); font-size: 0.85em; }
+
+/* ---------- Referenten ---------- */
+
+.filter { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 1.5rem 0 0.5rem; }
+.filter label { font-weight: 600; font-size: 0.95rem; }
+.filter input {
+  flex: 1 1 16rem; max-width: 26rem;
+  font: inherit; padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: 8px; background: #fff;
+}
+.filter input:focus { outline: 2px solid var(--brand); outline-offset: 0; border-color: transparent; }
+.filter-count { font-size: 0.9rem; color: var(--ink-2); }
+
+.letters { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0.75rem 0 0; padding: 0; list-style: none; }
+.letters a {
+  display: grid; place-items: center; min-width: 2rem; height: 2rem; border-radius: 6px;
+  font-size: 0.9rem; font-weight: 600; text-decoration: none; color: var(--ink-2); background: var(--bg-2);
+}
+.letters a:hover { color: var(--brand); }
+
+.people { list-style: none; margin: 0; padding: 0; columns: 1; column-gap: 2rem; }
+@media (min-width: 44rem) { .people { columns: 2; } }
+@media (min-width: 64rem) { .people { columns: 3; } }
+.people li { break-inside: avoid; padding: 0.55rem 0; border-bottom: 1px solid var(--line); }
+.people .name { font-weight: 600; display: block; }
+.people .events { font-size: 0.9rem; color: var(--ink-2); }
+.letter-group h2 { font-size: 1.1rem; color: var(--brand); margin: 2rem 0 0.25rem; }
+[hidden] { display: none !important; }
+
+/* ---------- Kontakt ---------- */
+
+.contact-main { display: grid; gap: 1rem; grid-template-columns: 1fr; margin-top: 1.5rem; }
+@media (min-width: 52rem) { .contact-main { grid-template-columns: 1.2fr 1fr; } }
+.contact-main .card { padding: 1.5rem; }
+.contact-lines { list-style: none; padding: 0; margin: 0.75rem 0 0; }
+.contact-lines li { display: grid; grid-template-columns: 5rem 1fr; gap: 0.5rem; padding: 0.3rem 0; }
+.contact-lines span:first-child { color: var(--ink-2); font-size: 0.925rem; }
+address { font-style: normal; }
+
+/* ---------- Fuß ---------- */
+
+.site-footer { background: var(--bg-2); border-top: 1px solid var(--line); padding: 2.5rem 0 2rem; font-size: 0.95rem; color: var(--ink-2); }
+.footer-grid { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+.site-footer h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink); margin: 0 0 0.6rem; }
+.site-footer ul { list-style: none; margin: 0; padding: 0; }
+.site-footer li { padding: 0.15rem 0; }
+.site-footer a { color: var(--ink-2); text-decoration: none; }
+.site-footer a:hover { color: var(--brand); text-decoration: underline; }
+.footer-bottom { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; justify-content: space-between; }
+
+/* ---------- Barrierefreiheit: reduzierte Bewegung ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .js .site-nav, .js .site-nav.is-open { transform: none !important; }
+  .btn, .nav-toggle, .toc a, .card--link { transition-property: background-color, border-color, color; }
+  .btn:active, .nav-toggle:active, .toc a:active, .card--link:active { transform: none; }
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  .site-header, .site-footer, .breadcrumbs, .filter, .letters, .actions { display: none; }
+  a { color: inherit; }
+}
