@@ -73,28 +73,15 @@ def load(name):
     return json.loads((CONTENT / f"{name}.json").read_text(encoding="utf-8"))
 
 
-# Hauptnavigation = Seitenverlauf (Reihenfolge der „Weiter“-Links)
+# Menü (Reihenfolge = Wichtigkeit)
 NAV = [
-    ("/", "Start"),
-    ("/philosophie/", "Philosophie"),
-    ("/veranstaltungen/", "Veranstaltungen"),
-    ("/archiv/", "Archiv"),
+    ("/veranstaltungen/", "Seminare & Symposium"),
+    ("/philosophie/", "Über uns"),
     ("/referenten/", "Referenten"),
+    ("/archiv/", "Archiv"),
     ("/presse/", "Presse"),
     ("/kontakt/", "Kontakt"),
 ]
-
-# Stationen der langen Startseite (Burger-Menü springt per Smooth Scroll dorthin)
-STATIONS = [
-    ("start", "Willkommen"),
-    ("philosophie", "Philosophie"),
-    ("geschichte", "Geschichte"),
-    ("veranstaltungen", "Veranstaltungen"),
-    ("referenten", "Referenten"),
-    ("presse", "Presse"),
-    ("kontakt", "Kontakt"),
-]
-
 
 def org_jsonld():
     return {
@@ -131,50 +118,15 @@ def breadcrumb_jsonld(path, title):
     }
 
 
-def arch_svg(cls):
-    """Zahnbogen mit Brackets und Bogendraht (Aufsicht) als Linienzeichnung."""
-    import math
-
-    def bez(t, p):
-        u = 1 - t
-        return (
-            u**3 * p[0][0] + 3 * u * u * t * p[1][0] + 3 * u * t * t * p[2][0] + t**3 * p[3][0],
-            u**3 * p[0][1] + 3 * u * u * t * p[1][1] + 3 * u * t * t * p[2][1] + t**3 * p[3][1],
-        )
-
-    teeth = [(30, 312), (18, -40), (382, -40), (370, 312)]
-    wire = teeth  # Draht läuft durch die Brackets auf den Zähnen
-    # gleichmäßig nach Bogenlänge verteilen
-    samples = [bez(i / 400, teeth) for i in range(401)]
-    acc = [0.0]
-    for a, b in zip(samples, samples[1:]):
-        acc.append(acc[-1] + math.dist(a, b))
-    n = 14
-    shapes = []
-    for k in range(n):
-        target = acc[-1] * (k + 0.5) / n
-        j = next(i for i, v in enumerate(acc) if v >= target)
-        (x, y), (x2, y2) = samples[j], samples[min(j + 1, 400)]
-        ang = math.degrees(math.atan2(y2 - y, x2 - x))
-        pos = abs(k - (n - 1) / 2) / ((n - 1) / 2)  # 0 = Schneidezahn, 1 = Molar
-        rx = 11 + 13 * pos ** 1.4
-        ry = 15 + 8 * pos
-        d = round(pos * (n - 1) / 2)  # Abstand zur Mitte → Reihenfolge der Animation
-        shapes.append(
-            f'<g transform="rotate({ang:.1f} {x:.1f} {y:.1f})"><ellipse class="tooth" style="--d:{d}" '
-            f'cx="{x:.1f}" cy="{y:.1f}" rx="{rx:.1f}" ry="{ry:.1f}"/></g>'
-        )
-        bx, by = x, y
-        shapes.append(
-            f'<rect class="bracket" style="--d:{d}" x="{bx - 5:.1f}" y="{by - 5:.1f}" width="10" height="10" rx="2" '
-            f'transform="rotate({ang:.1f} {bx:.1f} {by:.1f})"/>'
-        )
-    path = f'M{wire[0][0]},{wire[0][1]} C{wire[1][0]},{wire[1][1]} {wire[2][0]},{wire[2][1]} {wire[3][0]},{wire[3][1]}'
-    return (
-        f'<svg class="arch {cls}" viewBox="-10 -20 420 350" aria-hidden="true" focusable="false">'
-        + "".join(shapes)
-        + f'<path class="wire" d="{path}" pathLength="1"/></svg>'
-    )
+def logo_svg(cls="logo"):
+    """Logo inline einbinden; Farben über CSS steuerbar (hell/dunkel)."""
+    svg = (ROOT / "assets" / "logo.svg").read_text(encoding="utf-8")
+    svg = svg.replace('role="img" aria-labelledby="ios-logo-title"', f'class="{cls}" aria-hidden="true" focusable="false"')
+    svg = svg.replace('<title id="ios-logo-title">IOS Hannover</title>', "")
+    svg = svg.replace('fill="#503b8a"', 'style="fill:var(--logo-a)"')
+    svg = svg.replace('stroke="#949494"', 'style="stroke:var(--logo-b)"')
+    svg = svg.replace('fill="#949494"', 'style="fill:var(--logo-b)"')
+    return "".join(line.strip() for line in svg.splitlines() if not line.strip().startswith("<!--"))
 
 
 def layout(page, body):
@@ -188,42 +140,25 @@ def layout(page, body):
         for x in jsonld
     )
     robots = "noindex, follow" if page.get("noindex") else "index, follow"
+    current = page.get("nav", path)
 
-    stations = "\n".join(
-        f'<li style="--i:{i}"><a href="/#{sid}" data-station="{sid}">'
-        f'<span class="menu-no">{i + 1:02d}</span><span class="menu-label">{label}</span></a></li>'
-        for i, (sid, label) in enumerate(STATIONS)
-    )
-    details = "\n".join(
-        f'<li><a href="{href}"{" aria-current=\"page\"" if href == page.get("nav", path) else ""}>{label}</a></li>'
-        for href, label in NAV[1:] + [("/fotogalerie/", "Fotogalerie")]
+    menu_items = "\n".join(
+        f'<li style="--i:{i}"><a href="{href}"{" aria-current=\"page\"" if href == current else ""}>{label}</a></li>'
+        for i, (href, label) in enumerate(NAV)
     )
 
-    # Farbiges Kopf-Band mit Brotkrumen, H1 und Einleitung (alle Seiten außer Start)
-    crumbs = ""
+    head = ""
     if path != "/":
         lead = f'<p class="lead">{page["lead"]}</p>' if page.get("lead") else ""
-        crumbs = (
-            '<section class="page-band"><div class="wrap">'
+        head = (
+            '<header class="page-head"><div class="wrap">'
             '<nav class="breadcrumbs" aria-label="Brotkrumen"><ol>'
             '<li><a href="/">Start</a></li>'
             f'<li aria-current="page">{e(page["crumb"])}</li></ol></nav>'
-            f'<h1>{page["h1"]}</h1>{lead}</div>'
-            f'{arch_svg("page-band-art")}</section>'
+            f'<h1>{page["h1"]}</h1>{lead}</div></header>'
         )
 
-    # „Weiter“-Link: nächste Seite im Seitenverlauf
-    nxt = ""
-    order = [h for h, _ in NAV]
-    if path in order and path not in ("/", order[-1]):
-        i = order.index(path) + 1
-        h, label = NAV[i]
-        nxt = (
-            '<div class="wrap"><div class="next card--link">'
-            f'<span class="next-step">Weiter · Schritt {i} von {len(NAV) - 1}</span>'
-            f'<a href="{h}">{label}<span aria-hidden="true"> →</span></a></div></div>'
-        )
-
+    tel = ORG["phone"].replace(" ", "")
     return f"""<!doctype html>
 <html lang="de">
 <head>
@@ -241,7 +176,7 @@ def layout(page, body):
 <meta property="og:url" content="{canonical}">
 <meta property="og:image" content="{SITE}/assets/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#503b8a">
+<meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
@@ -250,98 +185,42 @@ def layout(page, body):
 <script src="/assets/main.js" defer></script>
 {ld}
 </head>
-<body class="{page.get("body_class", "")}">
+<body>
 <a class="skip" href="#inhalt">Zum Inhalt springen</a>
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="IOS Hannover – Startseite">
-      <span class="brand-mark" aria-hidden="true">IOS</span>
-      <span class="brand-text"><strong>IOS Hannover</strong><small>Interdisciplinary Orthodontic Seminars</small></span>
-    </a>
-    <div class="header-actions">
-      {social_links("social social--header")}
+    <a class="brand" href="/" aria-label="IOS Hannover – Startseite">{logo_svg("logo")}</a>
     <button class="burger" type="button" aria-expanded="false" aria-controls="menu">
       <span class="burger-label">Menü</span>
-      <span class="burger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span class="burger-icon" aria-hidden="true"><span></span><span></span></span>
     </button>
-    </div>
-  </div>
-  <div class="scroll-progress" aria-hidden="true"><span></span></div>
-</header>
-<div class="menu" id="menu" aria-label="Menü">
-  <div class="menu-inner wrap">
-    <nav class="menu-stations" aria-label="Hauptnavigation">
-      <p class="menu-kicker">Rundgang</p>
-      <ol>
-{stations}
-      </ol>
+    <nav class="menu" id="menu" aria-label="Hauptnavigation">
+      <ul class="menu-list">
+{menu_items}
+      </ul>
+      <div class="menu-foot">
+        <a href="tel:{tel}">{ORG["phone_display"]}</a>
+        {social_links("social social--small")}
+      </div>
     </nav>
-    <div class="menu-side">
-      <nav aria-label="Ausführliche Seiten">
-        <p class="menu-kicker">Ausführlich</p>
-        <ul class="menu-details">
-{details}
-        </ul>
-      </nav>
-      <div class="menu-contact">
-        <p class="menu-kicker">Kontakt</p>
-        <p><a href="tel:{ORG["phone"].replace(" ", "")}">{ORG["phone_display"]}</a><br>
-        <a href="mailto:{ORG["email"]}">{ORG["email"]}</a><br>
-        {ORG["street"]}, {ORG["zip"]} {ORG["city"]}</p>
-      </div>
-      <div>
-        <p class="menu-kicker">Folgen Sie uns</p>
-        {social_links("social social--menu", labels=True)}
-      </div>
-    </div>
   </div>
-</div>
+</header>
 <main id="inhalt">
-{crumbs}
+{head}
 {body}
-{nxt}
 </main>
 <footer class="site-footer">
-  <div class="wrap">
-    <div class="footer-grid">
-      <div>
-        <h2>IOS Hannover</h2>
-        <address>
-          Dr. Jan V. Raiman<br>
-          {ORG["street"]}<br>
-          {ORG["zip"]} {ORG["city"]}
-        </address>
-      </div>
-      <div>
-        <h2>Kontakt</h2>
-        <ul>
-          <li>Tel. <a href="tel:{ORG["phone"].replace(" ", "")}">{ORG["phone_display"]}</a></li>
-          <li>Fax {ORG["fax_display"]}</li>
-          <li><a href="mailto:{ORG["email"]}">{ORG["email"]}</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2>Seiten</h2>
-        <ul>
-          <li><a href="/veranstaltungen/">Veranstaltungen</a></li>
-          <li><a href="/archiv/">Archiv</a></li>
-          <li><a href="/referenten/">Referenten</a></li>
-          <li><a href="/fotogalerie/">Fotogalerie</a></li>
-          <li><a href="/presse/">Presse</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2>Weitere Angebote</h2>
-        <ul>
-          <li><a href="{SHOP_SEMINARE}" rel="noopener">Anmeldung &amp; Shop</a></li>
-        </ul>
-        {social_links("social social--footer", labels=True)}
-      </div>
+  <div class="wrap footer-row">
+    <div class="footer-brand">
+      {logo_svg("logo logo--footer")}
+      <address>{ORG["street"]} · {ORG["zip"]} {ORG["city"]}<br>
+      <a href="tel:{tel}">{ORG["phone_display"]}</a> · <a href="mailto:{ORG["email"]}">{ORG["email"]}</a></address>
     </div>
-    <div class="footer-bottom">
-      <span>© {datetime.date.today().year} IOS Hannover</span>
-      <span><a href="/impressum/">Impressum</a> · <a href="/datenschutz/">Datenschutz</a></span>
-    </div>
+    {social_links("social")}
+  </div>
+  <div class="wrap footer-bottom">
+    <span>© {datetime.date.today().year} IOS Hannover</span>
+    <span><a href="/impressum/">Impressum</a> · <a href="/datenschutz/">Datenschutz</a></span>
   </div>
 </footer>
 </body>
@@ -358,230 +237,87 @@ def pdf_link(file, label="Flyer"):
 # Seiten
 # ---------------------------------------------------------------------------
 
-def split_words(text):
-    """Überschrift in Wörter zerlegen, damit sie Wort für Wort einblenden kann."""
-    return " ".join(
-        f'<span class="w"><span style="--i:{i}">{w}</span></span>' for i, w in enumerate(text.split())
-    )
-
-
-def connector(direction):
-    """Geschwungener Bogendraht, der beim Scrollen nach rechts oder links führt."""
-    if direction == "right":
-        d = "M 60 10 C 60 120, 1140 60, 1140 190"
-    else:
-        d = "M 1140 10 C 1140 120, 60 60, 60 190"
-    return (
-        f'<div class="connector connector--{direction}" aria-hidden="true">'
-        f'<svg viewBox="0 0 1200 200" preserveAspectRatio="none"><path d="{d}" pathLength="1"/></svg>'
-        f'<span class="connector-hint">{"weiter nach rechts →" if direction == "right" else "← weiter nach links"}</span></div>'
-    )
-
-
 def page_start():
-    kongresse = load("kongresse")
-    seminare = load("seminare")
     people = load("referenten")
-    presse = load("presse")
-
-    # Geschichte: chronologisch, plus das 30. Symposium 2026
-    hist = "\n".join(
-        f'<li class="h-card" style="--i:{i}"><span class="h-year">{k["jahr"]}</span>'
-        f'<span class="h-dot" aria-hidden="true"></span>'
-        f'<strong>{k["nr"]}. Symposium</strong><span>{e(k["datum"])}</span><span>{e(k["ort"])}</span></li>'
-        for i, k in enumerate(sorted(kongresse, key=lambda k: (k["jahr"], k["nr"])))
-    )
-    hist += (
-        '<li class="h-card h-card--now"><span class="h-year">2026</span><span class="h-dot" aria-hidden="true"></span>'
-        '<strong>30. Symposium</strong><span>29.–30.05.2026</span><span>Prag, Hotel Josef</span></li>'
-    )
-
-    # Referenten: die mit den meisten Auftritten zuerst
-    top = sorted(people, key=lambda p: -len(p["events"]))[:12]
-    ref_cards = "\n".join(
-        f'<li class="r-card"><span class="avatar" aria-hidden="true">{initials(p["name"])}</span>'
-        f'<strong>{e(p["name"])}</strong>'
-        f'<span class="r-count">{len(p["events"])} {"Auftritt" if len(p["events"]) == 1 else "Auftritte"}</span>'
-        f'<span class="r-events">{e(", ".join(ev["label"] for ev in p["events"]))}</span></li>'
-        for p in top
-    )
-
-    press_cards = "\n".join(
-        f'<li class="p-card reveal" style="--i:{i}"><span class="p-source">{e(p["quelle"])}</span>'
-        f'<a class="pdf-link" href="{e(PDF + p["pdf"])}">{e(p["titel"])}</a></li>'
-        for i, p in enumerate([p for p in presse if p.get("pdf")][:6])
-    )
-
+    tel = ORG["phone"].replace(" ", "")
     body = f"""
 <section class="hero" id="start">
-  <div class="hero-media" aria-hidden="true">
-    <img src="/assets/img/ios-prague-banner.jpg" alt="" width="830" height="600" fetchpriority="high">
-  </div>
-  <div class="hero-arch" aria-hidden="true">{arch_svg("hero-art")}</div>
-  <div class="wrap hero-inner">
-    <p class="eyebrow">Interdisciplinary Orthodontic Seminars · seit 2000</p>
-    <h1 aria-label="Kieferorthopädie, die über den Tellerrand blickt.">{split_words("Kieferorthopädie, die über den Tellerrand blickt.")}</h1>
-    <p class="lead">Führende Köpfe aus Kieferorthopädie, Zahnmedizin und Medizin an einem Tisch – in Seminaren
-    in Hannover und beim International Orthodontic Symposium in Prag.</p>
-    <div class="actions">
-      <a class="btn btn--light btn--lg" href="#veranstaltungen">Veranstaltungen ansehen</a>
-      <a class="btn btn--outline btn--lg" href="#kontakt">Kontakt aufnehmen</a>
-    </div>
-    <div class="hero-social">
-      <span>Folgen Sie uns</span>
-      {social_links("social social--hero")}
-    </div>
-  </div>
-  <div class="hero-stats">
-    <dl class="wrap">
-      <div><dd>2000</dd><dt>gegründet in Hannover</dt></div>
-      <div><dd>30</dd><dt>Symposien in Prag</dt></div>
-      <div><dd>{len(people)}</dd><dt>Referentinnen &amp; Referenten</dt></div>
-      <div><dd>35+</dd><dt>Nationen zu Gast</dt></div>
-    </dl>
-  </div>
-  <a class="scroll-cue" href="#philosophie" aria-label="Weiter nach unten"><i aria-hidden="true"></i></a>
-</section>
-
-<section class="station station--light" id="philosophie">
-  <div class="wrap split">
-    <div class="reveal">
-      <p class="kicker">01 · Philosophie</p>
-      <h2 class="statement">Gesunde Kaufunktion entsteht im Team.</h2>
-    </div>
-    <div class="reveal" style="--i:1">
-      <p>Der Gründer des Arbeitskreises für Biosystemische Zahnheilkunde, <strong>Dr. Jan V. Raiman</strong>, steht für
-      eine moderne, ganzheitliche Kieferorthopädie, die über Fachgrenzen hinweg arbeitet – von der Frühbehandlung
-      bei Kindern bis zur Therapie Erwachsener im „besten Alter“.</p>
-      <p>Wir laden die besten interdisziplinär arbeitenden Kolleginnen und Kollegen nach Hannover ein, um Wissen
-      zu teilen und neue Erkenntnisse zum Wohl der Patientinnen und Patienten einzusetzen.</p>
-      <a class="more" href="/philosophie/">Mehr zur Philosophie <span aria-hidden="true">→</span></a>
-    </div>
-  </div>
-  {connector("right")}
-</section>
-
-<section class="hscroll hscroll--right" id="geschichte" aria-label="Geschichte">
-  <div class="hscroll-sticky">
-    <div class="hscroll-track">
-      <div class="h-intro">
-        <p class="kicker">02 · Geschichte</p>
-        <h2>Von der Prager Stadtbibliothek zum 30. Symposium.</h2>
-        <p><span class="pinned-only">Scrollen Sie weiter – die Zeitleiste fährt mit Ihnen nach rechts.</span><span class="swipe-only">Wischen Sie nach links, um durch die Jahre zu blättern.</span></p>
-      </div>
-      <ol class="h-list">
-{hist}
-      </ol>
-      <div class="h-outro">
-        <p>Alle Symposien und {len(seminare)} Seminare mit Flyern:</p>
-        <a class="btn" href="/archiv/">Zum Archiv</a>
-      </div>
-    </div>
-    <div class="hscroll-bar" aria-hidden="true"><span></span></div>
-  </div>
-</section>
-
-<section class="station" id="veranstaltungen">
-  <div class="wrap">
-    <div class="station-head reveal">
-      <p class="kicker">03 · Veranstaltungen</p>
-      <h2>Lernen in Hannover. Austauschen in Prag.</h2>
-    </div>
-    <div class="offer-grid">
-      <article class="offer reveal">
-        <p class="offer-tag">Seminare</p>
-        <h3>Fortbildung in Hannover</h3>
-        <p>Workshops und Seminare zu CMD, Frühbehandlung, Parodontologie, Implantologie und mehr – mit
-        Referentinnen und Referenten aus ganz Europa.</p>
-        <a class="btn" href="{SHOP_SEMINARE}" rel="noopener">Seminare &amp; Anmeldung</a>
-      </article>
-      <article class="offer offer--dark reveal" style="--i:1">
-        <img class="offer-img" src="/assets/img/prag-abend.jpg" alt="Abendstimmung an der Moldau in Prag" width="458" height="288" loading="lazy">
-        <p class="offer-tag">International Orthodontic Symposium</p>
-        <h3>Zwei Tage Prag</h3>
-        <dl class="facts">
-          <div><dt>Zuletzt</dt><dd>30. Symposium · 29.–30. Mai 2026</dd></div>
-          <div><dt>Ort</dt><dd>Hotel Josef, Prager Altstadt</dd></div>
-          <div><dt>Themen</dt><dd>Aligner, digitale Workflows, Kiefergelenk</dd></div>
-          <div><dt>Punkte</dt><dd>9 internationale / 12 deutsche CE-Punkte</dd></div>
-        </dl>
-        <a class="btn btn--light" href="{PRAGUE}" rel="noopener">IOS Prague</a>
-      </article>
-    </div>
-    <div class="callout reveal">
-      <p><strong>Referent werden?</strong> Wir suchen qualifizierte Referentinnen und Referenten aus ganz Europa.</p>
-      <a class="more" href="mailto:{ORG["email"]}?subject=Referent%20werden">Schreiben Sie uns <span aria-hidden="true">→</span></a>
-    </div>
-  </div>
-  {connector("left")}
-</section>
-
-<section class="hscroll hscroll--left" id="referenten" aria-label="Referenten">
-  <div class="hscroll-sticky">
-    <div class="hscroll-track">
-      <div class="h-intro">
-        <p class="kicker">04 · Referenten</p>
-        <h2>{len(people)} Köpfe, die uns Wissen geschenkt haben.</h2>
-        <p><span class="pinned-only">Diesmal geht es nach links – hier die Referenten mit den meisten Auftritten.</span><span class="swipe-only">Die Referenten mit den meisten Auftritten – zum Blättern wischen.</span></p>
-      </div>
-      <ul class="r-list">
-{ref_cards}
-      </ul>
-      <div class="h-outro">
-        <p>Alle {len(people)} Namen, durchsuchbar:</p>
-        <a class="btn" href="/referenten/">Alle Referenten</a>
-      </div>
-    </div>
-    <div class="hscroll-bar" aria-hidden="true"><span></span></div>
-  </div>
-</section>
-
-<section class="station station--light" id="presse">
-  <div class="wrap">
-    <div class="station-head reveal">
-      <p class="kicker">05 · Presse</p>
-      <h2>Was Fachmedien über uns schreiben.</h2>
-    </div>
-    <ul class="press-grid">
-{press_cards}
-    </ul>
-    <div class="row-links reveal">
-      <a class="more" href="/presse/">Alle {len(presse)} Presseberichte <span aria-hidden="true">→</span></a>
-      <a class="more" href="/fotogalerie/">Fotogalerie <span aria-hidden="true">→</span></a>
-    </div>
-  </div>
-</section>
-
-<section class="station station--dark" id="kontakt">
-  <div class="wrap split">
-    <div class="reveal">
-      <p class="kicker">06 · Kontakt</p>
-      <h2 class="statement">Fragen? Wir sind gern für Sie da.</h2>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">Fortbildung für Kieferorthopädie</p>
+      <h1><span>Seminare in Hannover.</span> <span>Symposium in Prag.</span></h1>
+      <p class="lead">Seit dem Jahr 2000 bringen wir führende Köpfe aus Kieferorthopädie, Zahnmedizin
+      und Medizin zusammen – praxisnah, interdisziplinär und international.</p>
       <div class="actions">
-        <a class="btn btn--light" href="mailto:{ORG["email"]}">E-Mail schreiben</a>
-        <a class="btn btn--outline" href="tel:{ORG["phone"].replace(" ", "")}">Anrufen</a>
+        <a class="btn" href="#angebot">Unser Angebot</a>
+        <a class="btn btn--ghost" href="#kontakt">Kontakt</a>
       </div>
     </div>
-    <dl class="facts reveal" style="--i:1">
-      <div><dt>Office</dt><dd>{ORG["street"]}, {ORG["zip"]} {ORG["city"]}</dd></div>
-      <div><dt>Telefon</dt><dd><a href="tel:{ORG["phone"].replace(" ", "")}">{ORG["phone_display"]}</a></dd></div>
-      <div><dt>E-Mail</dt><dd><a href="mailto:{ORG["email"]}">{ORG["email"]}</a></dd></div>
-      <div><dt>Ansprechpartner</dt><dd><a href="/kontakt/">Team &amp; Zuständigkeiten</a></dd></div>
-      <div><dt>Social Media</dt><dd>{social_links("social social--contact", labels=True)}</dd></div>
-    </dl>
+    <figure class="hero-photo">
+      <img src="/assets/img/ios-prague-banner.jpg" alt="Banner des International Orthodontic Symposium vor der Nikolauskirche in Prag" width="830" height="600" fetchpriority="high">
+    </figure>
   </div>
-  <div class="wrap partners reveal">
-    <p class="kicker">Partner</p>
-    <ul class="toc">
-      <li><a href="https://www.kfobb.de/" rel="noopener">KFO Berlin-Brandenburg</a></li>
-      <li><a href="https://www.isp-gmbh.de/" rel="noopener">ISP GmbH</a></li>
-      <li><a href="https://www.meinepraxis.de/" rel="noopener">meinepraxis.de</a></li>
+  <div class="wrap">
+    <ul class="facts-line" aria-label="IOS in Zahlen">
+      <li><strong>2000</strong> gegründet</li>
+      <li><strong>30</strong> Symposien in Prag</li>
+      <li><strong>{len(people)}</strong> Referenten</li>
+      <li><strong>35+</strong> Nationen</li>
     </ul>
+  </div>
+</section>
+
+<section class="block" id="angebot">
+  <div class="wrap">
+    <h2 class="block-title">Unser Angebot</h2>
+    <div class="offers">
+      <article class="offer">
+        <p class="offer-tag">Hannover</p>
+        <h3>Seminare &amp; Workshops</h3>
+        <p>Kompakte Fortbildungen zu CMD, Frühbehandlung, Parodontologie, Implantologie und
+        interdisziplinärer Therapie – mit Referentinnen und Referenten aus ganz Europa.</p>
+        <a class="btn" href="{SHOP_SEMINARE}" rel="noopener">Termine &amp; Anmeldung</a>
+      </article>
+      <article class="offer">
+        <img class="offer-img" src="/assets/img/prag-abend.jpg" alt="Abendstimmung an der Moldau in Prag" width="458" height="288" loading="lazy">
+        <p class="offer-tag">Prag</p>
+        <h3>International Orthodontic Symposium</h3>
+        <p>Zwei Tage Vorträge internationaler Experten in der Prager Altstadt – zuletzt das 30. Symposium
+        im Mai 2026 mit 9 internationalen bzw. 12 deutschen Fortbildungspunkten.</p>
+        <a class="btn" href="{PRAGUE}" rel="noopener">Zum Symposium</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="block block--tint">
+  <div class="wrap about">
+    <h2 class="block-title">Über uns</h2>
+    <div>
+      <p class="about-text">IOS Hannover wurde von <strong>Dr. Jan V. Raiman</strong> gegründet. Unser Ziel: eine moderne,
+      ganzheitliche Kieferorthopädie, in der Wissenschaft und Praxis eng zusammenarbeiten – zum Wohl der Patientinnen
+      und Patienten.</p>
+      <a class="more" href="/philosophie/">Mehr über uns <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="kontakt">
+  <div class="wrap contact-strip">
+    <div>
+      <h2 class="block-title">Fragen? Sprechen Sie uns an.</h2>
+      <p class="muted">{ORG["street"]} · {ORG["zip"]} {ORG["city"]}</p>
+    </div>
+    <div class="contact-actions">
+      <a class="contact-big" href="tel:{tel}">{ORG["phone_display"]}</a>
+      <a class="contact-big" href="mailto:{ORG["email"]}">{ORG["email"]}</a>
+      {social_links("social", labels=True)}
+    </div>
   </div>
 </section>
 """
     return {
-        "path": "/", "body_class": "is-home",
+        "path": "/",
         "title": "IOS Hannover – Interdisziplinäre kieferorthopädische Seminare",
         "description": "IOS Hannover organisiert seit 2000 Seminare zur interdisziplinären Kieferorthopädie in Hannover und das International Orthodontic Symposium in Prag.",
         "jsonld": [org_jsonld(), {
@@ -622,7 +358,7 @@ def page_philosophie():
 """
     return {
         "h1": f"""Unsere Philosophie""", "lead": f"""Moderne Kieferorthopädie gelingt am besten im Team – über Fachgrenzen hinweg.""",
-        "path": "/philosophie/", "crumb": "Philosophie",
+        "path": "/philosophie/", "crumb": "Über uns",
         "title": "Philosophie – interdisziplinäre Kieferorthopädie | IOS Hannover",
         "description": "Ganzheitliche, interdisziplinäre Kieferorthopädie: Wie IOS Hannover Wissenschaft und Praxis verbindet und führende Experten nach Hannover holt.",
         "body": body,

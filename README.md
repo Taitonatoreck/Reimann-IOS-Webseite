@@ -3,22 +3,24 @@
 Neue, schlichte Website für **IOS Hannover – Interdisciplinary Orthodontic Seminars**
 (bisher www.ios-hannover.de). Statisches HTML, kein CMS, keine Cookies, kein Tracking.
 
-## Seitenstruktur (Seitenverlauf)
+## Seitenstruktur
 
-Die Hauptnavigation ist zugleich der „Rundgang“: Jede Seite endet mit einem *Weiter*-Link
-zur nächsten.
+Die Startseite zeigt nur das Wichtigste – was IOS anbietet. Alles Weitere ist über das Menü erreichbar.
 
 ```
-Start  /
- ├─ 1. Philosophie        /philosophie/       Wer wir sind, wofür wir stehen
- ├─ 2. Veranstaltungen    /veranstaltungen/   Seminare (Shop), Symposium Prag, Referent werden
- ├─ 3. Archiv             /archiv/            16 Symposien + 32 Seminare seit 2000, mit Flyern
- │     └─ Fotogalerie     /fotogalerie/       Zugang per E-Mail anfordern
- ├─ 4. Referenten         /referenten/        116 Referenten, A–Z und Suchfeld
- ├─ 5. Presse             /presse/            26 Presseberichte (PDF)
- └─ 6. Kontakt            /kontakt/           Office, Ansprechpartner, Feedback
-Fußzeile: Impressum /impressum/ · Datenschutz /datenschutz/
+Start  /             Hero (Angebot in einem Satz), Zahlen, Unser Angebot (Seminare | Symposium),
+                     Über uns (kurz), Kontakt + Facebook / Instagram / IOS Prague
+Menü
+ ├─ Seminare & Symposium  /veranstaltungen/
+ ├─ Über uns              /philosophie/
+ ├─ Referenten            /referenten/   (116 Namen, Suche)
+ ├─ Archiv                /archiv/       (Symposien + Seminare seit 2000, Fotogalerie)
+ ├─ Presse                /presse/
+ └─ Kontakt               /kontakt/
+Fußzeile: Impressum · Datenschutz
 ```
+
+Logo: `assets/logo.svg` (als Vektorgrafik nachgezeichnet, gestochen scharf in jeder Größe).
 
 ## Bearbeiten
 
