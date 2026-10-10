@@ -185,7 +185,7 @@ def layout(page, body):
 <script src="/assets/main.js" defer></script>
 {ld}
 </head>
-<body>
+<body class="{page.get("body_class", "")}">
 <a class="skip" href="#inhalt">Zum Inhalt springen</a>
 <header class="site-header">
   <div class="wrap">
@@ -237,93 +237,202 @@ def pdf_link(file, label="Flyer"):
 # Seiten
 # ---------------------------------------------------------------------------
 
+# Häufige Fragen – nur Angaben, die auf ios-hannover.de / ios-prague.com belegt sind
+FAQ = [
+    ("Für wen sind die Fortbildungen gedacht?",
+     "Für Kieferorthopädinnen und Kieferorthopäden, Zahnärztinnen und Zahnärzte sowie Kolleginnen und Kollegen "
+     "in der Weiterbildung. Einzelne Reihen – etwa »PraxisFit« – richten sich auch an Zahnmedizinische Fachangestellte."),
+    ("Wie melde ich mich an?",
+     f'Ganz einfach online in unserem <a href="{SHOP_SEMINARE}" rel="noopener">Shop</a> – dort finden Sie alle aktuellen '
+     f'Termine. Bei Fragen erreichen Sie uns unter <a href="tel:+495115331693">+49 511 / 5 33 16 93</a> oder '
+     f'<a href="mailto:info@ios-hannover.de">info@ios-hannover.de</a>.'),
+    ("Bekomme ich Fortbildungspunkte?",
+     "Ja. Beim 30. Symposium in Prag 2026 gab es zum Beispiel 9 internationale bzw. 12 deutsche Fortbildungspunkte, "
+     "für den Pre-Congress zusätzlich 2 bzw. 3 Punkte. Die Punkte stehen jeweils im Programm der Veranstaltung."),
+    ("Was kostet das Symposium in Prag?",
+     "2026 lag die Teilnahme bei 695 € für Kieferorthopädinnen und Kieferorthopäden und bei 395 € in der Weiterbildung; "
+     "der Pre-Congress kostete 50 €. Die aktuellen Preise finden Sie bei der Anmeldung."),
+    ("Wo finden die Veranstaltungen statt?",
+     "Die Seminare finden in Hannover statt, zuletzt meist im Geha-Carré, aber auch im Alten Rathaus oder im HCC. "
+     "Das Symposium findet in der Prager Altstadt statt, 2026 im Hotel Josef."),
+    ("Gibt es Hotelempfehlungen für Prag?",
+     f'Ja. Für das Symposium reservieren wir in der Regel ein Zimmerkontingent in Hotels nahe dem Veranstaltungsort. '
+     f'Die Details stehen jeweils auf <a href="{PRAGUE}" rel="noopener">ios-prague.com</a>.'),
+    ("Gibt es ein Rahmenprogramm?",
+     "Beim Symposium treffen wir uns am Freitagabend zum Get-Together in einem traditionellen Prager Gasthaus – "
+     "eine gute Gelegenheit, die Referenten persönlich kennenzulernen. Eine Anmeldung ist nötig, Essen und Getränke "
+     "zahlt jede und jeder selbst."),
+    ("Kann ich selbst als Referentin oder Referent auftreten?",
+     'Sehr gern. Wir suchen laufend qualifizierte Referentinnen und Referenten aus ganz Europa. Schreiben Sie uns an '
+     '<a href="mailto:info@ios-hannover.de?subject=Referent%20werden">info@ios-hannover.de</a>.'),
+    ("Wie komme ich an die Fotos einer Veranstaltung?",
+     'Zum Schutz der Teilnehmenden versenden wir den Zugang zur Fotogalerie nur auf Anfrage. Mehr dazu unter '
+     '<a href="/fotogalerie/">Fotogalerie</a>.'),
+]
+
+
+def faq_jsonld():
+    import re
+    return {
+        "@context": "https://schema.org", "@type": "FAQPage",
+        "mainEntity": [
+            {"@type": "Question", "name": q,
+             "acceptedAnswer": {"@type": "Answer", "text": re.sub(r"<[^>]+>", "", a)}}
+            for q, a in FAQ
+        ],
+    }
+
+
 def page_start():
     people = load("referenten")
+    presse = load("presse")
     tel = ORG["phone"].replace(" ", "")
+
+    top = sorted(people, key=lambda p: -len(p["events"]))[:8]
+    speakers = "\n".join(
+        f'<li class="speaker reveal" style="--i:{i % 4}"><span class="avatar" aria-hidden="true">{initials(p["name"])}</span>'
+        f'<span><strong>{e(p["name"])}</strong><small>{len(p["events"])} Auftritte · seit {p["events"][0]["label"].split()[-1]}</small></span></li>'
+        for i, p in enumerate(top)
+    )
+    press = "\n".join(
+        f'<li class="quote reveal" style="--i:{i}"><span class="quote-src">{e(p["quelle"])}</span>'
+        f'<a href="{e(PDF + p["pdf"])}">„{e(p["titel"].split(" – ")[0])}“</a></li>'
+        for i, p in enumerate([p for p in presse if p.get("pdf")][:3])
+    )
+    faq = "\n".join(
+        f'<details class="faq-item reveal"><summary>{e(q)}<span class="faq-icon" aria-hidden="true"></span></summary>'
+        f'<div class="faq-a"><p>{a}</p></div></details>'
+        for q, a in FAQ
+    )
+
     body = f"""
 <section class="hero" id="start">
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <p class="eyebrow">Fortbildung für Kieferorthopädie</p>
-      <h1><span>Seminare in Hannover.</span> <span>Symposium in Prag.</span></h1>
-      <p class="lead">Seit dem Jahr 2000 bringen wir führende Köpfe aus Kieferorthopädie, Zahnmedizin
-      und Medizin zusammen – praxisnah, interdisziplinär und international.</p>
-      <div class="actions">
-        <a class="btn" href="#angebot">Unser Angebot</a>
-        <a class="btn btn--ghost" href="#kontakt">Kontakt</a>
-      </div>
-    </div>
-    <figure class="hero-photo">
-      <img src="/assets/img/ios-prague-banner.jpg" alt="Banner des International Orthodontic Symposium vor der Nikolauskirche in Prag" width="830" height="600" fetchpriority="high">
-    </figure>
+  <div class="hero-media" aria-hidden="true">
+    <img src="/assets/img/ios-prague-banner.jpg" alt="" width="830" height="600" fetchpriority="high">
   </div>
-  <div class="wrap">
-    <ul class="facts-line" aria-label="IOS in Zahlen">
-      <li><strong>2000</strong> gegründet</li>
-      <li><strong>30</strong> Symposien in Prag</li>
-      <li><strong>{len(people)}</strong> Referenten</li>
-      <li><strong>35+</strong> Nationen</li>
-    </ul>
+  <div class="wrap hero-inner">
+    <p class="eyebrow">Fortbildung für Kieferorthopädie · seit 2000</p>
+    <h1><span class="w"><span style="--i:0">Seminare</span></span> <span class="w"><span style="--i:1">in</span></span> <span class="w"><span style="--i:2">Hannover.</span></span>
+    <span class="hl"><span class="w"><span style="--i:3">Symposium</span></span> <span class="w"><span style="--i:4">in</span></span> <span class="w"><span style="--i:5">Prag.</span></span></span></h1>
+    <p class="lead">Führende Köpfe aus Kieferorthopädie, Zahnmedizin und Medizin an einem Tisch –
+    praxisnah, interdisziplinär und international.</p>
+    <div class="actions">
+      <a class="btn btn--light" href="#angebot">Unser Angebot</a>
+      <a class="btn btn--outline" href="#fragen">Häufige Fragen</a>
+    </div>
+    {social_links("social social--hero")}
+  </div>
+  <div class="hero-stats">
+    <dl class="wrap">
+      <div><dd data-count="2000">2000</dd><dt>gegründet in Hannover</dt></div>
+      <div><dd data-count="30">30</dd><dt>Symposien in Prag</dt></div>
+      <div><dd data-count="{len(people)}">{len(people)}</dd><dt>Referentinnen &amp; Referenten</dt></div>
+      <div><dd data-count="35" data-suffix="+">35+</dd><dt>Nationen zu Gast</dt></div>
+    </dl>
   </div>
 </section>
 
 <section class="block" id="angebot">
   <div class="wrap">
-    <h2 class="block-title">Unser Angebot</h2>
+    <p class="kicker reveal">Unser Angebot</p>
+    <h2 class="reveal">Zwei Formate, ein Ziel: bessere Kieferorthopädie.</h2>
     <div class="offers">
-      <article class="offer">
+      <article class="offer reveal">
         <p class="offer-tag">Hannover</p>
         <h3>Seminare &amp; Workshops</h3>
         <p>Kompakte Fortbildungen zu CMD, Frühbehandlung, Parodontologie, Implantologie und
         interdisziplinärer Therapie – mit Referentinnen und Referenten aus ganz Europa.</p>
         <a class="btn" href="{SHOP_SEMINARE}" rel="noopener">Termine &amp; Anmeldung</a>
       </article>
-      <article class="offer">
-        <img class="offer-img" src="/assets/img/prag-abend.jpg" alt="Abendstimmung an der Moldau in Prag" width="458" height="288" loading="lazy">
+      <article class="offer offer--dark reveal" style="--i:1">
+        <div class="offer-img"><img src="/assets/img/prag-abend.jpg" alt="Abendstimmung an der Moldau in Prag" width="458" height="288" loading="lazy"></div>
         <p class="offer-tag">Prag</p>
         <h3>International Orthodontic Symposium</h3>
-        <p>Zwei Tage Vorträge internationaler Experten in der Prager Altstadt – zuletzt das 30. Symposium
-        im Mai 2026 mit 9 internationalen bzw. 12 deutschen Fortbildungspunkten.</p>
-        <a class="btn" href="{PRAGUE}" rel="noopener">Zum Symposium</a>
+        <p>Zwei Tage Vorträge internationaler Experten in der Prager Altstadt – zuletzt das 30. Symposium im Mai 2026.</p>
+        <a class="btn btn--light" href="{PRAGUE}" rel="noopener">Zum Symposium</a>
       </article>
     </div>
   </div>
 </section>
 
-<section class="block block--tint">
-  <div class="wrap about">
-    <h2 class="block-title">Über uns</h2>
-    <div>
-      <p class="about-text">IOS Hannover wurde von <strong>Dr. Jan V. Raiman</strong> gegründet. Unser Ziel: eine moderne,
-      ganzheitliche Kieferorthopädie, in der Wissenschaft und Praxis eng zusammenarbeiten – zum Wohl der Patientinnen
-      und Patienten.</p>
+<section class="band band--brand" id="philosophie">
+  <div class="wrap split">
+    <div class="reveal">
+      <p class="kicker">Unsere Philosophie</p>
+      <h2 class="statement">Gesunde Kaufunktion entsteht im Team.</h2>
+    </div>
+    <div class="reveal" style="--i:1">
+      <p>Gegründet von <strong>Dr. Jan V. Raiman</strong>, steht IOS Hannover für eine moderne, ganzheitliche
+      Kieferorthopädie – von der Frühbehandlung bei Kindern bis zur Therapie Erwachsener im „besten Alter“.</p>
+      <p>Wir laden die besten interdisziplinär arbeitenden Kolleginnen und Kollegen ein, um Wissen zu teilen
+      und neue Erkenntnisse zum Wohl der Patientinnen und Patienten einzusetzen.</p>
       <a class="more" href="/philosophie/">Mehr über uns <span aria-hidden="true">→</span></a>
     </div>
   </div>
 </section>
 
-<section class="block" id="kontakt">
-  <div class="wrap contact-strip">
-    <div>
-      <h2 class="block-title">Fragen? Sprechen Sie uns an.</h2>
-      <p class="muted">{ORG["street"]} · {ORG["zip"]} {ORG["city"]}</p>
+<section class="block" id="referenten">
+  <div class="wrap">
+    <div class="split split--head">
+      <div class="reveal"><p class="kicker">Referenten</p><h2>Wissen aus erster Hand.</h2></div>
+      <p class="reveal muted" style="--i:1">Seit 2000 haben {len(people)} Expertinnen und Experten bei uns
+      vorgetragen – viele davon immer wieder.</p>
     </div>
-    <div class="contact-actions">
+    <ul class="speakers">
+{speakers}
+    </ul>
+    <a class="more reveal" href="/referenten/">Alle {len(people)} Referenten <span aria-hidden="true">→</span></a>
+  </div>
+</section>
+
+<section class="band band--dark" id="presse">
+  <div class="wrap">
+    <p class="kicker reveal">Presse</p>
+    <h2 class="reveal">Was Fachmedien schreiben.</h2>
+    <ul class="quotes">
+{press}
+    </ul>
+    <a class="more reveal" href="/presse/">Alle {len(presse)} Presseberichte <span aria-hidden="true">→</span></a>
+  </div>
+</section>
+
+<section class="block block--tint" id="fragen">
+  <div class="wrap split split--faq">
+    <div class="faq-head reveal">
+      <p class="kicker">Q&amp;A</p>
+      <h2>Häufige Fragen</h2>
+      <p class="muted">Ihre Frage ist nicht dabei? Rufen Sie uns an oder schreiben Sie uns – wir antworten gern.</p>
+      <a class="btn" href="#kontakt">Frage stellen</a>
+    </div>
+    <div class="faq">
+{faq}
+    </div>
+  </div>
+</section>
+
+<section class="band band--brand" id="kontakt">
+  <div class="wrap contact-strip">
+    <div class="reveal">
+      <p class="kicker">Kontakt</p>
+      <h2 class="statement">Fragen? Sprechen Sie uns an.</h2>
+      <p>{ORG["street"]} · {ORG["zip"]} {ORG["city"]}</p>
+    </div>
+    <div class="contact-actions reveal" style="--i:1">
       <a class="contact-big" href="tel:{tel}">{ORG["phone_display"]}</a>
       <a class="contact-big" href="mailto:{ORG["email"]}">{ORG["email"]}</a>
-      {social_links("social", labels=True)}
+      {social_links("social social--onbrand", labels=True)}
     </div>
   </div>
 </section>
 """
     return {
-        "path": "/",
+        "path": "/", "body_class": "is-home",
         "title": "IOS Hannover – Interdisziplinäre kieferorthopädische Seminare",
         "description": "IOS Hannover organisiert seit 2000 Seminare zur interdisziplinären Kieferorthopädie in Hannover und das International Orthodontic Symposium in Prag.",
         "jsonld": [org_jsonld(), {
             "@context": "https://schema.org", "@type": "WebSite",
             "name": "IOS Hannover", "url": SITE + "/", "inLanguage": "de",
-        }],
+        }, faq_jsonld()],
         "body": body,
     }
 

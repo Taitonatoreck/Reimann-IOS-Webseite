@@ -8,8 +8,8 @@ Neue, schlichte Website für **IOS Hannover – Interdisciplinary Orthodontic Se
 Die Startseite zeigt nur das Wichtigste – was IOS anbietet. Alles Weitere ist über das Menü erreichbar.
 
 ```
-Start  /             Hero (Angebot in einem Satz), Zahlen, Unser Angebot (Seminare | Symposium),
-                     Über uns (kurz), Kontakt + Facebook / Instagram / IOS Prague
+Start  /             Hero (Foto Prag, Angebot in einem Satz, Zahlen), Unser Angebot (Seminare | Symposium),
+                     Philosophie, Referenten, Presse, Häufige Fragen (Q&A), Kontakt + Social-Icons
 Menü
  ├─ Seminare & Symposium  /veranstaltungen/
  ├─ Über uns              /philosophie/
