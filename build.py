@@ -25,6 +25,30 @@ SHOP_SEMINARE = "https://ios-hannover.de/shop/public/de"
 SHOP_SYMPOSIUM = "https://ios-hannover.de/shop/public/cz/de"
 PRAGUE = "https://ios-prague.com/"
 FACEBOOK = "https://www.facebook.com/InterdisciplinaryOrthodonticSeminarsHannover"
+INSTAGRAM = "https://www.instagram.com/ios.hannover/"
+
+ICONS = {
+    "facebook": '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M13.4 21v-7.6h2.6l.4-3h-3V8.5c0-.9.3-1.5 1.5-1.5h1.6V4.3c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H7.8v3h2.6V21z"/></svg>',
+    "instagram": '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>',
+    "prague": '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 2.5 15.5 9v12h-7V9z"/><path d="M8.5 9h7M4 21h16M5.5 21v-6l3-2M18.5 21v-6l-3-2"/><path d="M10.5 21v-3.5a1.5 1.5 0 0 1 3 0V21"/></svg>',
+}
+SOCIAL = [
+    ("facebook", "Facebook", FACEBOOK),
+    ("instagram", "Instagram", INSTAGRAM),
+    ("prague", "IOS Prague", PRAGUE),
+]
+
+
+def social_links(cls="social", labels=False):
+    items = "".join(
+        f'<li><a class="social-link social-link--{key}" href="{url}" rel="noopener" target="_blank" '
+        f'aria-label="{name} (öffnet in neuem Tab)" title="{name}">{ICONS[key]}'
+        + (f'<span>{name}</span>' if labels else "")
+        + "</a></li>"
+        for key, name, url in SOCIAL
+    )
+    return f'<ul class="{cls}">{items}</ul>'
+
 
 ORG = {
     "name": "IOS Hannover",
@@ -92,7 +116,7 @@ def org_jsonld():
             "addressLocality": ORG["city"],
             "addressCountry": "DE",
         },
-        "sameAs": [FACEBOOK, PRAGUE],
+        "sameAs": [FACEBOOK, INSTAGRAM, PRAGUE],
     }
 
 
@@ -223,7 +247,6 @@ def layout(page, body):
 <link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/style.css">
 <script>document.documentElement.classList.add("js")</script>
-<script src="/assets/lenis.min.js" defer></script>
 <script src="/assets/main.js" defer></script>
 {ld}
 </head>
@@ -235,10 +258,13 @@ def layout(page, body):
       <span class="brand-mark" aria-hidden="true">IOS</span>
       <span class="brand-text"><strong>IOS Hannover</strong><small>Interdisciplinary Orthodontic Seminars</small></span>
     </a>
+    <div class="header-actions">
+      {social_links("social social--header")}
     <button class="burger" type="button" aria-expanded="false" aria-controls="menu">
       <span class="burger-label">Menü</span>
       <span class="burger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
+    </div>
   </div>
   <div class="scroll-progress" aria-hidden="true"><span></span></div>
 </header>
@@ -262,6 +288,10 @@ def layout(page, body):
         <p><a href="tel:{ORG["phone"].replace(" ", "")}">{ORG["phone_display"]}</a><br>
         <a href="mailto:{ORG["email"]}">{ORG["email"]}</a><br>
         {ORG["street"]}, {ORG["zip"]} {ORG["city"]}</p>
+      </div>
+      <div>
+        <p class="menu-kicker">Folgen Sie uns</p>
+        {social_links("social social--menu", labels=True)}
       </div>
     </div>
   </div>
@@ -303,10 +333,9 @@ def layout(page, body):
       <div>
         <h2>Weitere Angebote</h2>
         <ul>
-          <li><a href="{PRAGUE}" rel="noopener">IOS Prague – Symposium</a></li>
           <li><a href="{SHOP_SEMINARE}" rel="noopener">Anmeldung &amp; Shop</a></li>
-          <li><a href="{FACEBOOK}" rel="noopener">Facebook</a></li>
         </ul>
+        {social_links("social social--footer", labels=True)}
       </div>
     </div>
     <div class="footer-bottom">
@@ -385,20 +414,33 @@ def page_start():
 
     body = f"""
 <section class="hero" id="start">
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <p class="eyebrow">Fortbildung für Kieferorthopädie · Hannover &amp; Prag</p>
-      <h1 aria-label="Kieferorthopädie, die über den Tellerrand blickt.">{split_words("Kieferorthopädie, die über den Tellerrand blickt.")}</h1>
-      <p class="lead">Seit dem Jahr 2000 holt IOS Hannover führende Köpfe der Kieferorthopädie, Zahnmedizin
-      und Medizin an einen Tisch – in Seminaren in Hannover und beim International Orthodontic Symposium in Prag.</p>
-      <div class="actions">
-        <a class="btn btn--light" href="#veranstaltungen">Veranstaltungen ansehen</a>
-        <a class="btn btn--outline" href="#kontakt">Kontakt aufnehmen</a>
-      </div>
-    </div>
-    <div class="hero-art-wrap" data-parallax="0.12">{arch_svg("hero-art")}</div>
+  <div class="hero-media" aria-hidden="true">
+    <img src="/assets/img/ios-prague-banner.jpg" alt="" width="830" height="600" fetchpriority="high">
   </div>
-  <a class="scroll-cue" href="#philosophie"><span>Scrollen</span><i aria-hidden="true"></i></a>
+  <div class="hero-arch" aria-hidden="true">{arch_svg("hero-art")}</div>
+  <div class="wrap hero-inner">
+    <p class="eyebrow">Interdisciplinary Orthodontic Seminars · seit 2000</p>
+    <h1 aria-label="Kieferorthopädie, die über den Tellerrand blickt.">{split_words("Kieferorthopädie, die über den Tellerrand blickt.")}</h1>
+    <p class="lead">Führende Köpfe aus Kieferorthopädie, Zahnmedizin und Medizin an einem Tisch – in Seminaren
+    in Hannover und beim International Orthodontic Symposium in Prag.</p>
+    <div class="actions">
+      <a class="btn btn--light btn--lg" href="#veranstaltungen">Veranstaltungen ansehen</a>
+      <a class="btn btn--outline btn--lg" href="#kontakt">Kontakt aufnehmen</a>
+    </div>
+    <div class="hero-social">
+      <span>Folgen Sie uns</span>
+      {social_links("social social--hero")}
+    </div>
+  </div>
+  <div class="hero-stats">
+    <dl class="wrap">
+      <div><dd>2000</dd><dt>gegründet in Hannover</dt></div>
+      <div><dd>30</dd><dt>Symposien in Prag</dt></div>
+      <div><dd>{len(people)}</dd><dt>Referentinnen &amp; Referenten</dt></div>
+      <div><dd>35+</dd><dt>Nationen zu Gast</dt></div>
+    </dl>
+  </div>
+  <a class="scroll-cue" href="#philosophie" aria-label="Weiter nach unten"><i aria-hidden="true"></i></a>
 </section>
 
 <section class="station station--light" id="philosophie">
@@ -416,14 +458,6 @@ def page_start():
       <a class="more" href="/philosophie/">Mehr zur Philosophie <span aria-hidden="true">→</span></a>
     </div>
   </div>
-  <div class="wrap">
-    <dl class="stats-grid reveal">
-      <div><dt>gegründet</dt><dd>2000</dd></div>
-      <div><dt>Symposien in Prag</dt><dd>30</dd></div>
-      <div><dt>Referentinnen &amp; Referenten</dt><dd>{len(people)}</dd></div>
-      <div><dt>Teilnehmende aus</dt><dd>35+<small> Nationen</small></dd></div>
-    </dl>
-  </div>
   {connector("right")}
 </section>
 
@@ -433,7 +467,7 @@ def page_start():
       <div class="h-intro">
         <p class="kicker">02 · Geschichte</p>
         <h2>Von der Prager Stadtbibliothek zum 30. Symposium.</h2>
-        <p>Scrollen Sie weiter – die Zeitleiste fährt mit Ihnen nach rechts.</p>
+        <p><span class="pinned-only">Scrollen Sie weiter – die Zeitleiste fährt mit Ihnen nach rechts.</span><span class="swipe-only">Wischen Sie nach links, um durch die Jahre zu blättern.</span></p>
       </div>
       <ol class="h-list">
 {hist}
@@ -462,6 +496,7 @@ def page_start():
         <a class="btn" href="{SHOP_SEMINARE}" rel="noopener">Seminare &amp; Anmeldung</a>
       </article>
       <article class="offer offer--dark reveal" style="--i:1">
+        <img class="offer-img" src="/assets/img/prag-abend.jpg" alt="Abendstimmung an der Moldau in Prag" width="458" height="288" loading="lazy">
         <p class="offer-tag">International Orthodontic Symposium</p>
         <h3>Zwei Tage Prag</h3>
         <dl class="facts">
@@ -487,7 +522,7 @@ def page_start():
       <div class="h-intro">
         <p class="kicker">04 · Referenten</p>
         <h2>{len(people)} Köpfe, die uns Wissen geschenkt haben.</h2>
-        <p>Diesmal geht es nach links – hier die Referenten mit den meisten Auftritten.</p>
+        <p><span class="pinned-only">Diesmal geht es nach links – hier die Referenten mit den meisten Auftritten.</span><span class="swipe-only">Die Referenten mit den meisten Auftritten – zum Blättern wischen.</span></p>
       </div>
       <ul class="r-list">
 {ref_cards}
@@ -532,6 +567,7 @@ def page_start():
       <div><dt>Telefon</dt><dd><a href="tel:{ORG["phone"].replace(" ", "")}">{ORG["phone_display"]}</a></dd></div>
       <div><dt>E-Mail</dt><dd><a href="mailto:{ORG["email"]}">{ORG["email"]}</a></dd></div>
       <div><dt>Ansprechpartner</dt><dd><a href="/kontakt/">Team &amp; Zuständigkeiten</a></dd></div>
+      <div><dt>Social Media</dt><dd>{social_links("social social--contact", labels=True)}</dd></div>
     </dl>
   </div>
   <div class="wrap partners reveal">

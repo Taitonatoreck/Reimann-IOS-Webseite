@@ -38,9 +38,8 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-padding-top: var(--header-h); }
-html:not(.lenis-on) { scroll-behavior: smooth; }
-html.lenis-on { scroll-behavior: auto; }
-@media (prefers-reduced-motion: reduce) { html:not(.lenis-on) { scroll-behavior: auto; } }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 html.menu-open { overflow: hidden; }
 
 body {
@@ -216,58 +215,146 @@ main { display: block; padding-top: calc(var(--header-h) + env(safe-area-inset-t
 .is-home main { padding-top: 0; padding-bottom: 0; }
 
 .hero {
-  position: relative; overflow: hidden;
+  position: relative; overflow: hidden; isolation: isolate;
   min-height: 100svh;
-  display: flex; flex-direction: column; justify-content: center;
-  background:
-    radial-gradient(55rem 32rem at 82% 18%, rgba(200, 184, 245, 0.18), transparent 62%),
-    radial-gradient(40rem 26rem at 0% 100%, rgba(80, 59, 138, 0.45), transparent 70%),
-    var(--plum-900);
+  display: flex; flex-direction: column;
+  background: var(--plum-900);
   color: var(--on-dark);
-  padding-block: calc(var(--header-h) + 3rem) 6rem;
 }
-.hero-grid { display: grid; gap: 2.5rem; align-items: center; }
-@media (min-width: 58rem) { .hero-grid { grid-template-columns: 1.3fr 1fr; } }
-.hero-copy { min-width: 0; }
+
+/* Foto vom IOS-Banner in Prag, rechts, weich in den dunklen Grund verlaufend */
+.hero-media {
+  position: absolute; z-index: -2; top: 0; right: 0; bottom: 0; width: 62%;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%);
+          mask-image: linear-gradient(to right, transparent 0%, #000 38%);
+}
+.hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: 58% 40%; display: block; transform: scale(1.06); }
+.hero-media::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(31, 22, 56, 0.25), rgba(31, 22, 56, 0.1) 40%, rgba(31, 22, 56, 0.85));
+}
+.hero-arch {
+  position: absolute; z-index: -1; left: -10rem; bottom: -16rem; width: min(64rem, 120vw);
+  color: var(--lilac); opacity: 0.12; pointer-events: none;
+}
+
+.hero-inner {
+  flex: 1; display: flex; flex-direction: column; justify-content: center;
+  padding-top: calc(var(--header-h) + clamp(2rem, 6vh, 5rem)); padding-bottom: 3rem;
+}
 .hero .eyebrow {
-  display: inline-block; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  font-size: 0.8rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--lilac); margin-bottom: 1.25rem;
 }
-.hero h1 { color: var(--white); max-width: 13ch; }
-.hero .lead { color: var(--on-dark); max-width: 36rem; font-size: 1.2rem; }
-.hero-art-wrap { justify-self: center; width: 100%; max-width: 30rem; will-change: transform; }
-.hero-art { color: var(--lilac); width: 100%; }
-@media (max-width: 57.99rem) { .hero-art-wrap { max-width: 14rem; order: -1; justify-self: start; } }
+.hero h1 {
+  color: var(--white); max-width: 13ch; margin-bottom: 1.5rem;
+  font-size: clamp(2.5rem, 1.2rem + 5.2vw, 6.2rem); line-height: 0.96; letter-spacing: -0.035em; font-weight: 780;
+}
+.hero .lead { color: var(--on-dark); max-width: 34rem; font-size: clamp(1.1rem, 1rem + 0.4vw, 1.3rem); }
+.btn--lg { padding: 1rem 1.6rem; font-size: 1.05rem; }
 
-/* Wörter der Überschrift: Maske, aus der jedes Wort nach oben herausfährt */
-.hero h1 .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.hero-social { display: flex; align-items: center; gap: 1rem; margin-top: 2.25rem; font-size: 0.85rem; color: var(--on-dark); }
+
+.hero-stats { border-top: 1px solid var(--line-dark); background: rgba(31, 22, 56, 0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.hero-stats dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0 auto; }
+@media (min-width: 48rem) { .hero-stats dl { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.hero-stats dl > div { display: flex; flex-direction: column; padding: 1.25rem 1rem 1.25rem 0; }
+@media (min-width: 48rem) { .hero-stats dl > div + div { border-left: 1px solid var(--line-dark); padding-left: 1.5rem; } }
+.hero-stats dd {
+  margin: 0; font-family: var(--font-display); font-weight: 760; color: var(--white);
+  font-size: clamp(1.9rem, 1.3rem + 2vw, 3rem); line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums;
+}
+.hero-stats dt { font-size: 0.85rem; color: var(--lilac); margin-top: 0.4rem; }
+
+.hero h1 .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.1em; margin-bottom: -0.1em; }
 .hero h1 .w > span { display: inline-block; }
 
 .scroll-cue {
-  position: absolute; left: 50%; bottom: 1.5rem; transform: translateX(-50%);
-  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
-  color: var(--on-dark); text-decoration: none; font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase;
+  position: absolute; right: max(1rem, calc((100vw - var(--wrap)) / 2 + 1.75rem)); bottom: 7.5rem;
+  display: block; padding: 0.5rem;
 }
-.scroll-cue i { position: relative; display: block; width: 1px; height: 2.75rem; background: rgba(255, 255, 255, 0.2); overflow: hidden; }
+.scroll-cue i { position: relative; display: block; width: 1px; height: 3.5rem; background: rgba(255, 255, 255, 0.25); overflow: hidden; }
 .scroll-cue i::after { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 40%; background: var(--lilac); }
+@media (max-width: 47.99rem) { .scroll-cue { display: none; } }
+
+/* Handy & Tablet: Foto oben, Text darunter */
+@media (max-width: 57.99rem) {
+  .hero-media {
+    width: 100%; bottom: auto; height: 52svh;
+    -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+            mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+  }
+  .hero-media img { object-position: 45% 40%; }
+  .hero-inner { justify-content: flex-end; padding-top: calc(var(--header-h) + 34svh); }
+  .hero h1 { max-width: 12ch; }
+}
 
 @media (prefers-reduced-motion: no-preference) {
-  .hero .eyebrow { animation: fadeUp 700ms var(--ease-out) 100ms both; }
-  .hero h1 .w > span { animation: wordUp 900ms var(--ease-out) both; animation-delay: calc(220ms + var(--i) * 70ms); }
-  .hero .lead { animation: fadeUp 800ms var(--ease-out) 750ms both; }
-  .hero .actions { animation: fadeUp 800ms var(--ease-out) 880ms both; }
-  .hero-art .wire { stroke-dasharray: 1; animation: draw 1600ms var(--ease-in-out) 350ms both; }
-  .hero-art .tooth { transform-box: fill-box; transform-origin: center; animation: toothIn 600ms var(--ease-out) both; animation-delay: calc(500ms + var(--d) * 70ms); }
-  .hero-art .bracket { animation: fade 400ms ease both; animation-delay: calc(1100ms + var(--d) * 50ms); }
-  .scroll-cue { animation: fade 800ms ease 1500ms both; }
-  .scroll-cue i::after { animation: cue 1800ms var(--ease-in-out) 1800ms infinite; }
+  .hero-media { animation: unveil 1300ms var(--ease-in-out) 100ms both; }
+  .hero .eyebrow { animation: fadeUp 700ms var(--ease-out) 250ms both; }
+  .hero h1 .w > span { animation: wordUp 1000ms var(--ease-out) both; animation-delay: calc(350ms + var(--i) * 80ms); }
+  .hero .lead { animation: fadeUp 800ms var(--ease-out) 950ms both; }
+  .hero .actions { animation: fadeUp 800ms var(--ease-out) 1080ms both; }
+  .hero-social { animation: fadeUp 800ms var(--ease-out) 1200ms both; }
+  .hero-stats dl > div { animation: fadeUp 700ms var(--ease-out) both; animation-delay: calc(1250ms + var(--n, 0) * 90ms); }
+  .hero-stats dl > div:nth-child(2) { --n: 1; }
+  .hero-stats dl > div:nth-child(3) { --n: 2; }
+  .hero-stats dl > div:nth-child(4) { --n: 3; }
+  .hero-art .wire { stroke-dasharray: 1; animation: draw 2200ms var(--ease-in-out) 600ms both; }
+  .hero-art .tooth { transform-box: fill-box; transform-origin: center; animation: toothIn 700ms var(--ease-out) both; animation-delay: calc(700ms + var(--d) * 80ms); }
+  .hero-art .bracket { animation: fade 500ms ease both; animation-delay: calc(1500ms + var(--d) * 60ms); }
+  .scroll-cue { animation: fade 800ms ease 1800ms both; }
+  .scroll-cue i::after { animation: cue 1800ms var(--ease-in-out) 2200ms infinite; }
 }
+@keyframes unveil { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
+@media (max-width: 57.99rem) { @keyframes unveil { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } } }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } }
 @keyframes wordUp { from { transform: translateY(105%); } }
 @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes fade { from { opacity: 0; } }
 @keyframes toothIn { from { opacity: 0; transform: scale(0.6); } }
 @keyframes cue { 0% { transform: translateY(-100%); } 100% { transform: translateY(250%); } }
+
+/* ================= Social-Icons ================= */
+
+.header-actions { display: flex; align-items: center; gap: 0.75rem; }
+.social { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.social-link {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-width: 2.5rem; height: 2.5rem; border-radius: 999px;
+  color: var(--ink); background: var(--white); border: 1px solid var(--line); text-decoration: none;
+  transition: transform 160ms var(--ease-out), background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+.social-link svg { width: 1.2rem; height: 1.2rem; flex: none; }
+.social-link span { font-size: 0.9rem; font-weight: 600; }
+.social-link:has(span) { padding-inline: 0.85rem 1rem; }
+.social-link:active { transform: scale(0.94); }
+@media (hover: hover) and (pointer: fine) {
+  .social-link:hover { color: var(--white); background: var(--brand); border-color: var(--brand); }
+}
+.social--header { display: none; }
+@media (min-width: 40rem) { .social--header { display: flex; } }
+.is-home .site-header:not(.is-scrolled) .social-link,
+.menu-open .site-header .social-link { color: var(--white); background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.22); }
+
+/* auf dunklem Grund */
+.social--hero .social-link, .social--menu .social-link, .social--footer .social-link, .social--contact .social-link {
+  color: var(--white); background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.22);
+}
+.social--hero .social-link { min-width: 3rem; height: 3rem; }
+.social--hero .social-link svg { width: 1.35rem; height: 1.35rem; }
+@media (hover: hover) and (pointer: fine) {
+  .social--hero .social-link:hover, .social--menu .social-link:hover, .social--footer .social-link:hover,
+  .social--contact .social-link:hover, .is-home .site-header:not(.is-scrolled) .social-link:hover {
+    background: var(--lilac); border-color: var(--lilac); color: var(--plum-900);
+  }
+}
+.social--footer { margin-top: 1rem; flex-direction: column; align-items: flex-start; }
+.social--contact { margin-top: 0.4rem; }
+.social--menu .social-link span, .social--contact .social-link span, .social--footer .social-link span { color: inherit; }
+
+.offer-img { width: calc(100% + 2 * clamp(1.5rem, 3vw, 2.5rem)); max-width: none; margin: calc(-1 * clamp(1.5rem, 3vw, 2.5rem)) calc(-1 * clamp(1.5rem, 3vw, 2.5rem)) 1.25rem; height: 11rem; object-fit: cover; border-radius: calc(var(--radius) + 6px) calc(var(--radius) + 6px) 0 0; }
+.offer--dark { overflow: hidden; }
 
 /* ================= Zahnbogen-Zeichnung ================= */
 
@@ -333,18 +420,19 @@ main { display: block; padding-top: calc(var(--header-h) + env(safe-area-inset-t
 .hscroll { position: relative; background: var(--lilac-soft); }
 .hscroll-sticky {
   overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity;
+  scroll-padding-inline: 1rem;
   padding-block: 3rem;
 }
 .hscroll-track {
   display: flex; align-items: stretch; gap: 1.25rem;
   width: max-content; padding-inline: max(1rem, calc((100vw - var(--wrap)) / 2 + 1.75rem));
 }
-.hscroll--left .hscroll-track { flex-direction: row-reverse; }
+.hscroll-on .hscroll--left .hscroll-track { flex-direction: row-reverse; }
 .hscroll-track > * { scroll-snap-align: start; }
 
 /* Mit JavaScript: Abschnitt bleibt stehen, Inhalt fährt beim Scrollen seitwärts */
 .hscroll-on .hscroll-sticky {
-  position: sticky; top: 0; height: 100svh; overflow: hidden;
+  position: sticky; top: 0; height: 100svh; min-height: 34rem; overflow: hidden;
   display: flex; flex-direction: column; justify-content: center;
   padding-block: calc(var(--header-h) + 1rem) 2rem; scroll-snap-type: none;
 }
@@ -637,3 +725,8 @@ address { font-style: normal; }
   .page-band h1, .hero h1 { color: inherit; }
   a { color: inherit; }
 }
+
+/* Richtungs-Hinweis im Text nur, wenn der Abschnitt wirklich seitwärts fährt */
+.pinned-only { display: none; }
+.hscroll-on .pinned-only { display: inline; }
+.hscroll-on .swipe-only { display: none; }
