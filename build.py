@@ -12,11 +12,15 @@ import datetime
 import html
 import json
 import shutil
+import sys
 from collections import OrderedDict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-OUT = ROOT / "public"
+# Variante: "python3 build.py --variant uupm" baut die Version nach dem UI-UX-Pro-Max-Skill
+# in ./public-uupm – die normale Seite in ./public bleibt unverändert.
+VARIANT = sys.argv[sys.argv.index("--variant") + 1] if "--variant" in sys.argv else ""
+OUT = ROOT / ("public-" + VARIANT if VARIANT else "public")
 CONTENT = ROOT / "content"
 
 SITE = "https://www.ios-hannover.de"
@@ -118,6 +122,12 @@ def breadcrumb_jsonld(path, title):
     }
 
 
+VARIANT_HEAD = """
+<link rel="preload" href="/assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/noto-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/theme-uupm.css">"""
+
+
 def logo_svg(cls="logo"):
     """Logo inline einbinden; Farben über CSS steuerbar (hell/dunkel)."""
     svg = (ROOT / "assets" / "logo.svg").read_text(encoding="utf-8")
@@ -180,7 +190,7 @@ def layout(page, body):
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/style.css">{VARIANT_HEAD if VARIANT else ""}
 <script>document.documentElement.classList.add("js")</script>
 <script src="/assets/main.js" defer></script>
 {ld}
@@ -271,6 +281,23 @@ FAQ = [
 ]
 
 
+TRUST_STRIP = """
+<section class="trust" aria-label="Bekannt aus">
+  <div class="wrap trust-inner">
+    <p class="trust-label">Berichtet in</p>
+    <ul class="trust-list">
+      <li>DZW <small>Die ZahnarztWoche</small></li>
+      <li>KN <small>Kieferorthopädie Nachrichten</small></li>
+      <li>ZKN <small>Mitteilungen</small></li>
+      <li>KFO Zeitung</li>
+      <li>BDK.info</li>
+      <li>GZM</li>
+    </ul>
+  </div>
+</section>
+"""
+
+
 def faq_jsonld():
     import re
     return {
@@ -341,6 +368,7 @@ def page_start():
   </div>
 </section>
 
+{TRUST_STRIP if VARIANT else ""}
 <section class="block" id="angebot">
   <div class="wrap">
     <p class="kicker reveal">Unser Angebot</p>

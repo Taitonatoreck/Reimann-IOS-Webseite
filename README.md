@@ -81,3 +81,16 @@ Nach den Grundsätzen aus dem Skill `emil-design-eng` (`npx skills add emilkowal
 liegt unter `.claude/skills/`): kurze Übergänge mit Ease-out-Kurve, Drück-Feedback
 (`scale(0.97)`), Menü klappt vom Button aus auf, Hover-Effekte nur bei Maus,
 `prefers-reduced-motion` wird beachtet, und die Suche reagiert sofort ohne Animation.
+
+## Variante „UI UX Pro Max“
+
+Zum Vergleich gibt es eine zweite Version nach dem Skill [UI UX Pro Max](https://www.uupm.cc)
+(Muster „Trust & Authority“, Schrift Figtree + Noto Sans, 44-px-Touch-Flächen, höhere Kontraste,
+„Berichtet in“-Leiste, gestaffeltes Einblenden). Sie ändert die normale Seite nicht.
+
+```bash
+python3 build.py                  # normale Seite  → ./public
+python3 build.py --variant uupm   # Skill-Variante → ./public-uupm
+```
+
+Die Variante besteht nur aus `assets/theme-uupm.css` plus der „Berichtet in“-Leiste in `build.py`.

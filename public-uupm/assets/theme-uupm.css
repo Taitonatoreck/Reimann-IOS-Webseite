@@ -1,0 +1,67 @@
+/* Variante nach dem Skill „UI UX Pro Max“ (uupm.cc)
+   Empfehlung für „medical conference / continuing education“:
+   Muster Trust & Authority + Conversion · Stil Accessible & Ethical ·
+   Schrift Figtree + Noto Sans · Motion: gestaffeltes Einblenden (300–450 ms).
+   Abweichung: Hauptfarbe bleibt das Logo-Violett (Markenvorgabe), Akzent nur für Buttons. */
+
+@font-face { font-family: "Figtree"; src: url("fonts/figtree.woff2") format("woff2"); font-weight: 400 800; font-display: swap; }
+@font-face { font-family: "Noto Sans"; src: url("fonts/noto-sans.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+
+:root {
+  --font-display: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font: "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --label: #5f5f6b;          /* statt Logo-Grau für kleine Texte: 6,4:1 statt 3,0:1 Kontrast */
+  --tint: #f5f4fa;
+  --radius: 14px;
+  --ease-pop: cubic-bezier(0.34, 1.4, 0.64, 1); /* entspricht back.out(1.4) */
+}
+
+body { font-size: 1.0625rem; line-height: 1.7; }
+h1, h2, h3 { letter-spacing: -0.025em; }
+h2 { font-weight: 800; }
+h3 { font-weight: 700; }
+.hero h1 { font-weight: 800; letter-spacing: -0.04em; }
+.statement { font-weight: 800; }
+
+/* Barrierefreiheit: deutliche Fokus-Ringe (3 px), lesbare Kontraste */
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
+.band :focus-visible, .hero :focus-visible, .band--dark :focus-visible { outline-color: var(--lilac); }
+.card .meta, .breadcrumbs, .offer-tag, .filter-count { color: var(--label); }
+.offer--dark .offer-tag { color: var(--lilac); }
+.breadcrumbs li + li::before { color: var(--label); }
+
+/* Touch-Flächen mindestens 44 × 44 px */
+.burger { min-height: 2.75rem; padding-inline: 1.1rem 0.95rem; }
+.social-link { min-width: 2.75rem; height: 2.75rem; }
+.social--small .social-link { min-width: 2.75rem; height: 2.75rem; }
+.menu-list a { min-height: 2.75rem; display: flex; align-items: center; }
+.btn { min-height: 2.75rem; padding: 0.85rem 1.45rem; font-weight: 700; }
+.letters a { min-width: 2.75rem; height: 2.75rem; }
+.faq-item summary { min-height: 3.5rem; }
+summary, .burger, .btn, .social-link { cursor: pointer; }
+
+/* Proof-Leiste direkt nach dem Hero */
+.trust { border-bottom: 1px solid var(--line); background: var(--white); }
+.trust-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2.5rem; padding-block: 1.5rem; }
+.trust-label { margin: 0; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--label); }
+.trust-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.75rem 2.25rem; }
+.trust-list li { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; color: var(--ink); letter-spacing: -0.01em; }
+.trust-list small { font-family: var(--font); font-weight: 500; font-size: 0.8rem; color: var(--label); letter-spacing: 0; margin-left: 0.25rem; }
+
+/* Karten: ruhige Tiefe statt Rahmen-Look */
+.offer { box-shadow: 0 1px 2px rgba(28, 26, 34, 0.04); }
+.speaker, .h-card { box-shadow: 0 1px 2px rgba(28, 26, 34, 0.05), 0 8px 24px -12px rgba(80, 59, 138, 0.18); border-color: transparent; }
+@media (hover: hover) and (pointer: fine) {
+  .speaker, .offer { transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out); }
+  .speaker:hover, .offer:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(28, 26, 34, 0.05), 0 18px 36px -16px rgba(80, 59, 138, 0.3); }
+}
+
+/* Motion „Stagger List“: Karten gleiten gestaffelt mit leichtem Nachfedern herein */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-on .speaker.reveal, .reveal-on .quote.reveal, .reveal-on .offer.reveal {
+    transform: translateY(16px) scale(0.96);
+    transition: opacity 400ms ease, transform 450ms var(--ease-pop);
+    transition-delay: calc(var(--i, 0) * 60ms);
+  }
+  .reveal-on .speaker.reveal.is-in, .reveal-on .quote.reveal.is-in, .reveal-on .offer.reveal.is-in { transform: none; }
+}
