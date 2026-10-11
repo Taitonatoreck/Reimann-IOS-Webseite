@@ -287,6 +287,15 @@ def page_start():
     people = load("referenten")
     presse = load("presse")
     tel = ORG["phone"].replace(" ", "")
+    kongresse = sorted(load("kongresse"), key=lambda k: (k["jahr"], k["nr"]))
+    hist = "\n".join(
+        f'<li class="h-card"><span class="h-year">{k["jahr"]}</span><span class="h-dot" aria-hidden="true"></span>'
+        f'<strong>{k["nr"]}. Symposium</strong><span>{e(k["datum"])}</span><span>{e(k["ort"])}</span></li>'
+        for k in kongresse
+    ) + (
+        '<li class="h-card h-card--now"><span class="h-year">2026</span><span class="h-dot" aria-hidden="true"></span>'
+        '<strong>30. Symposium</strong><span>29.–30.05.2026</span><span>Prag, Hotel Josef</span></li>'
+    )
 
     top = sorted(people, key=lambda p: -len(p["events"]))[:8]
     speakers = "\n".join(
@@ -368,6 +377,26 @@ def page_start():
       und neue Erkenntnisse zum Wohl der Patientinnen und Patienten einzusetzen.</p>
       <a class="more" href="/philosophie/">Mehr über uns <span aria-hidden="true">→</span></a>
     </div>
+  </div>
+</section>
+
+<section class="hscroll" id="geschichte" aria-label="Geschichte">
+  <div class="hscroll-sticky">
+    <div class="hscroll-track">
+      <div class="h-intro">
+        <p class="kicker">Geschichte</p>
+        <h2>Von der Prager Stadtbibliothek zum 30. Symposium.</h2>
+        <p class="muted"><span class="pinned-only">Scrollen Sie weiter – die Zeitleiste fährt seitwärts.</span><span class="swipe-only">Wischen Sie seitwärts durch die Jahre.</span></p>
+      </div>
+      <ol class="h-list">
+{hist}
+      </ol>
+      <div class="h-outro">
+        <p>Alle Symposien und Seminare mit Flyern:</p>
+        <a class="btn" href="/archiv/">Zum Archiv</a>
+      </div>
+    </div>
+    <div class="hscroll-bar" aria-hidden="true"><span></span></div>
   </div>
 </section>
 

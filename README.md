@@ -9,7 +9,7 @@ Die Startseite zeigt nur das Wichtigste – was IOS anbietet. Alles Weitere ist 
 
 ```
 Start  /             Hero (Foto Prag, Angebot in einem Satz, Zahlen), Unser Angebot (Seminare | Symposium),
-                     Philosophie, Referenten, Presse, Häufige Fragen (Q&A), Kontakt + Social-Icons
+                     Philosophie, Geschichte (Zeitleiste fährt seitwärts), Referenten, Presse, Häufige Fragen (Q&A), Kontakt + Social-Icons
 Menü
  ├─ Seminare & Symposium  /veranstaltungen/
  ├─ Über uns              /philosophie/

@@ -514,3 +514,49 @@ address { font-style: normal; }
   .site-header, .site-footer, .filter, .letters, .actions { display: none; }
   a { color: inherit; }
 }
+
+/* ================= Seitwärts-Abschnitt (Geschichte) ================= */
+/* Ohne JS / am Handy: normaler Wisch-Streifen. Ab Tablet mit JS: Abschnitt bleibt stehen,
+   die Zeitleiste fährt beim Runterscrollen seitwärts (natives Scrollen, nichts wird abgefangen). */
+
+.hscroll { position: relative; background: var(--brand-soft); }
+.hscroll-sticky {
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scroll-padding-inline: 1rem;
+  padding-block: clamp(3.5rem, 8vw, 6rem);
+}
+.hscroll-track {
+  display: flex; align-items: stretch; gap: 1rem; width: max-content;
+  padding-inline: max(1rem, calc((100vw - var(--wrap)) / 2 + 2rem));
+}
+.hscroll-track > * { scroll-snap-align: start; }
+.hscroll-on .hscroll-sticky {
+  position: sticky; top: 0; height: 100svh; min-height: 34rem; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center;
+  padding-block: calc(var(--header-h) + 1rem) 2rem; scroll-snap-type: none;
+}
+.hscroll-on .hscroll-track { will-change: transform; }
+.hscroll-bar { position: relative; height: 3px; margin: 2.5rem auto 0; width: min(18rem, 60vw); background: rgba(80, 59, 138, 0.18); border-radius: 3px; }
+.hscroll-bar span { position: absolute; inset: 0; background: var(--brand); border-radius: inherit; transform: scaleX(0); transform-origin: left; }
+html:not(.hscroll-on) .hscroll-bar { display: none; }
+.pinned-only { display: none; }
+.hscroll-on .pinned-only { display: inline; }
+.hscroll-on .swipe-only { display: none; }
+
+.h-intro, .h-outro { flex: none; display: flex; flex-direction: column; justify-content: center; }
+.h-intro { width: min(28rem, 80vw); padding-right: 1.5rem; }
+.h-intro h2 { font-size: clamp(1.9rem, 1.3rem + 2.2vw, 3rem); }
+.h-outro { width: min(18rem, 70vw); align-items: flex-start; padding-left: 1rem; }
+
+.h-list { list-style: none; margin: 0; padding: 0; display: flex; gap: 1rem; position: relative; }
+.h-list::before { content: ""; position: absolute; left: 0; right: 0; top: 5.2rem; height: 2px; background: var(--brand); opacity: 0.3; }
+.h-card {
+  position: relative; flex: none; width: 14.5rem; display: flex; flex-direction: column; gap: 0.1rem;
+  padding: 1.25rem 1.25rem 1.4rem; border-radius: var(--radius); background: var(--white); border: 1px solid var(--line);
+  font-size: 0.95rem; color: var(--ink-2);
+}
+.h-year { font-family: var(--font-display); font-weight: 760; font-size: 2.6rem; line-height: 1; color: var(--ink); letter-spacing: -0.03em; }
+.h-dot { display: block; width: 0.9rem; height: 0.9rem; margin: 0.9rem 0 0.8rem; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 4px var(--brand-soft); }
+.h-card strong { color: var(--ink); font-size: 1.05rem; }
+.h-card--now { background: var(--brand); border-color: var(--brand); color: #e9e4f6; }
+.h-card--now .h-year, .h-card--now strong { color: var(--white); }
+.h-card--now .h-dot { background: var(--lilac); box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15); }

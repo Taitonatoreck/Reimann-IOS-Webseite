@@ -40,12 +40,65 @@
   var header = document.querySelector(".site-header");
   var heroImg = document.querySelector(".hero-media img");
 
+  // Seitwärts-Abschnitt: ab Tablet-Breite fährt die Zeitleiste beim Runterscrollen seitwärts.
+  // Höhe wird nur bei echter Breitenänderung neu gemessen (nicht beim Ein-/Ausfahren der Adressleiste).
+  var hs = Array.prototype.slice.call(document.querySelectorAll(".hscroll"));
+  var wide = window.matchMedia("(min-width: 48rem)");
+  var pinned = false;
+  var lastWidth = 0;
+  var measure = function () {
+    hs.forEach(function (sec) {
+      var track = sec.querySelector(".hscroll-track");
+      var sticky = sec.querySelector(".hscroll-sticky");
+      track.style.transform = "";
+      sec._dist = Math.max(0, track.scrollWidth - sticky.clientWidth);
+      sec._rest = Math.round(sticky.offsetHeight * 0.15); // kurze Ruhezone am Anfang und Ende
+      sec.style.height = sec._dist + sticky.offsetHeight + 2 * sec._rest + "px";
+    });
+  };
+  var setPinned = function () {
+    var next = !reduce && wide.matches && hs.length > 0;
+    if (next !== pinned) {
+      pinned = next;
+      root.classList.toggle("hscroll-on", pinned);
+      if (!pinned) hs.forEach(function (sec) {
+        sec.style.height = "";
+        sec.querySelector(".hscroll-track").style.transform = "";
+      });
+    }
+    if (pinned) measure();
+    lastWidth = window.innerWidth;
+  };
+  var moveTracks = function () {
+    if (!pinned) return;
+    hs.forEach(function (sec) {
+      var top = sec.getBoundingClientRect().top;
+      var p = sec._dist ? Math.min(1, Math.max(0, (-top - sec._rest) / sec._dist)) : 0;
+      sec.querySelector(".hscroll-track").style.transform = "translate3d(" + (-p * sec._dist).toFixed(1) + "px,0,0)";
+      var bar = sec.querySelector(".hscroll-bar span");
+      if (bar) bar.style.transform = "scaleX(" + p.toFixed(3) + ")";
+    });
+  };
+  setPinned();
+  var resizeTimer;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      if (window.innerWidth !== lastWidth) setPinned();
+      moveTracks();
+    }, 120);
+  });
+  var remeasure = function () { if (pinned) { measure(); moveTracks(); } };
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
+  window.addEventListener("load", remeasure);
+
   var ticking = false;
   var onScroll = function () {
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(function () {
       ticking = false;
+      moveTracks();
       var y = window.scrollY;
       if (header) header.classList.toggle("is-scrolled", y > 24);
       if (heroImg && !reduce && y < window.innerHeight * 1.2) {
