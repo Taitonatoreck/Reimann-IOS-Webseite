@@ -90,9 +90,9 @@ summary, .burger, .btn, .social-link { cursor: pointer; }
 .arc-stage { position: relative; flex: 1; width: 100%; max-width: 68rem; margin: 0 auto; padding: 1rem 1rem 0; min-height: 0; }
 .arc-svg { display: block; width: 100%; height: auto; max-height: 62svh; overflow: visible; margin: 0 auto; }
 .arc-ghost { fill: none; stroke: var(--brand); stroke-opacity: 0.12; stroke-width: 2; stroke-dasharray: 2 10; stroke-linecap: round; }
-.arc-line { fill: none; stroke: var(--brand); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.arc-line { fill: none; stroke: var(--brand); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
 .js .arc-line { stroke-dashoffset: 1; }
-.arc-pin { fill: var(--white); stroke: var(--brand); stroke-width: 5; transition: fill 300ms ease; }
+.arc-pin { fill: var(--white); stroke: var(--brand); stroke-width: 4px; transition: fill 300ms ease; }
 .arc-pin--start { fill: var(--brand); }
 .arc-story.is-done .arc-pin--end { fill: var(--brand); }
 .arc-dot { fill: var(--lilac); stroke: var(--brand); stroke-width: 3; }
@@ -114,12 +114,20 @@ summary, .burger, .btn, .social-link { cursor: pointer; }
 .arc-point--end .more { margin-top: 0.5rem; }
 .js .arc-point--end { opacity: 0.35; transition: opacity 400ms ease; }
 .arc-story.is-done .arc-point--end { opacity: 1; }
+.arc-ghost, .arc-pin, .arc-dot { vector-effect: non-scaling-stroke; }
 @media (max-width: 40rem) {
   .arc-story { height: 200vh; }
-  .arc-point { position: static; max-width: none; }
-  .arc-stage { display: flex; flex-direction: column; }
-  .arc-points-row { display: flex; justify-content: space-between; }
-  .arc-counter { top: 26%; }
+  .arc-stage {
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: "svg svg" "counter counter" "start end";
+    align-content: start; row-gap: 1.25rem; padding-top: 2rem;
+  }
+  .arc-svg { grid-area: svg; }
+  .arc-counter { grid-area: counter; position: static; transform: none; }
+  .arc-point { position: static; max-width: none; font-size: 0.875rem; }
+  .arc-point--start { grid-area: start; }
+  .arc-point--end { grid-area: end; }
+  .arc-line { stroke-width: 11; }
+  .arc-pin { stroke-width: 3px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .arc-story { height: auto; }
@@ -145,4 +153,80 @@ summary, .burger, .btn, .social-link { cursor: pointer; }
     transition-delay: calc(var(--i, 0) * 60ms);
   }
   .reveal-on .speaker.reveal.is-in, .reveal-on .quote.reveal.is-in, .reveal-on .offer.reveal.is-in { transform: none; }
+}
+
+/* ================= Vollbild-Menü (Variante) ================= */
+/* Öffnet sich als Kreis aus dem Menü-Button und füllt den ganzen Bildschirm. */
+html.menu-open { overflow: hidden; }
+.menu-open .site-header {
+  background: transparent; border-color: transparent;
+  backdrop-filter: none; -webkit-backdrop-filter: none;   /* sonst wäre das Menü im Header gefangen */
+  --logo-a: #ffffff; --logo-b: #cfc8e3;
+}
+.brand, .burger { position: relative; z-index: 2; }
+.menu-open .burger { background: var(--lilac); border-color: var(--lilac); color: var(--plum-900); }
+
+.menu {
+  position: fixed; inset: 0; z-index: 1;
+  width: auto; right: auto; top: auto;
+  display: grid; align-content: center; gap: 2.5rem;
+  padding: calc(var(--header-h) + 2rem) max(1rem, calc((100vw - var(--wrap)) / 2 + 2rem)) 2.5rem;
+  background:
+    radial-gradient(50rem 30rem at 85% 0%, rgba(200, 184, 245, 0.16), transparent 60%),
+    var(--plum-900);
+  border: 0; border-radius: 0; box-shadow: none;
+  overflow-y: auto; overscroll-behavior: contain;
+  opacity: 1; transform: none; visibility: hidden;
+  clip-path: circle(0px at calc(100% - max(2rem, calc((100vw - var(--wrap)) / 2 + 4rem))) calc(var(--header-h) / 2));
+  transition: clip-path 450ms var(--ease-in-out), visibility 0s linear 450ms;
+}
+.menu-open .menu {
+  visibility: visible;
+  clip-path: circle(150vmax at calc(100% - max(2rem, calc((100vw - var(--wrap)) / 2 + 4rem))) calc(var(--header-h) / 2));
+  transition: clip-path 650ms var(--ease-in-out), visibility 0s;
+}
+@media (min-width: 56rem) { .menu { grid-template-columns: 1.6fr 1fr; align-items: end; column-gap: 4rem; } }
+
+.menu-list { counter-reset: menu; }
+.menu-list li { border-top: 1px solid var(--line-dark); }
+.menu-list li:last-child { border-bottom: 1px solid var(--line-dark); }
+.menu-list a {
+  counter-increment: menu;
+  display: flex; align-items: baseline; gap: 1.25rem; min-height: 0; padding: 0.6rem 0.25rem; border-radius: 0;
+  font-family: var(--font-display); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05;
+  font-size: clamp(2rem, 1.2rem + 3.6vw, 4.2rem); color: var(--white); background: none;
+}
+.menu-list a::before {
+  content: counter(menu, decimal-leading-zero);
+  font-family: var(--font); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.06em; color: var(--lilac); min-width: 1.75rem;
+}
+.menu-list a[aria-current="page"] { color: var(--lilac); background: none; }
+@media (hover: hover) and (pointer: fine) {
+  .menu-list a { transition: color 150ms ease, transform 250ms var(--ease-out); }
+  .menu-list a:hover { color: var(--lilac); background: none; transform: translateX(0.5rem); }
+}
+
+.menu-foot {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;
+  margin: 0; padding: 0; border: 0; font-size: 1.05rem;
+}
+.menu-foot > a { color: var(--white); font-family: var(--font-display); font-weight: 700; font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem); }
+.menu-foot > a:hover { color: var(--lilac); }
+.menu-address { color: var(--on-dark); margin-bottom: 1rem; }
+.menu-foot .social-link { color: var(--white); background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.28); }
+@media (hover: hover) and (pointer: fine) { .menu-foot .social-link:hover { background: var(--lilac); color: var(--plum-900); border-color: var(--lilac); } }
+
+/* Einträge erscheinen gestaffelt, nachdem der Kreis aufgegangen ist */
+.menu-list li, .menu-foot { opacity: 0; transform: translateY(18px); transition: opacity 150ms ease, transform 150ms ease; }
+.menu-open .menu-list li, .menu-open .menu-foot {
+  opacity: 1; transform: none;
+  transition: opacity 500ms ease, transform 600ms var(--ease-out);
+  transition-delay: calc(200ms + var(--i, 0) * 50ms);
+}
+.menu-open .menu-foot { transition-delay: 500ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .menu, .menu-open .menu { clip-path: none; transition: opacity 200ms ease, visibility 0s; opacity: 0; }
+  .menu-open .menu { opacity: 1; }
+  .menu-list li, .menu-foot { transform: none !important; }
 }

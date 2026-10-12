@@ -210,6 +210,7 @@ def layout(page, body):
       </ul>
       <div class="menu-foot">
         <a href="tel:{tel}">{ORG["phone_display"]}</a>
+        {f'<a href="mailto:{ORG["email"]}">{ORG["email"]}</a><span class="menu-address">{ORG["street"]} · {ORG["zip"]} {ORG["city"]}</span>' if VARIANT else ""}
         {social_links("social social--small")}
       </div>
     </nav>

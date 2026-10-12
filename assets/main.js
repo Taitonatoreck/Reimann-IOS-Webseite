@@ -16,7 +16,12 @@
     root.classList.toggle("menu-open", open);
     burger.setAttribute("aria-expanded", String(open));
     burger.querySelector(".burger-label").textContent = open ? "Schließen" : "Menü";
-    if (!open && restoreFocus) burger.focus({ preventScroll: true });
+    // Inhalt hinter dem Menü für Tastatur und Screenreader sperren, solange es offen ist
+    Array.prototype.forEach.call(document.querySelectorAll("main, footer, .skip"), function (el) { el.inert = open; });
+    if (open) {
+      var first = menu.querySelector("a");
+      if (first) setTimeout(function () { first.focus({ preventScroll: true }); }, 80);
+    } else if (restoreFocus) burger.focus({ preventScroll: true });
   }
 
   if (burger && menu) {

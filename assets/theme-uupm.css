@@ -154,3 +154,79 @@ summary, .burger, .btn, .social-link { cursor: pointer; }
   }
   .reveal-on .speaker.reveal.is-in, .reveal-on .quote.reveal.is-in, .reveal-on .offer.reveal.is-in { transform: none; }
 }
+
+/* ================= Vollbild-Menü (Variante) ================= */
+/* Öffnet sich als Kreis aus dem Menü-Button und füllt den ganzen Bildschirm. */
+html.menu-open { overflow: hidden; }
+.menu-open .site-header {
+  background: transparent; border-color: transparent;
+  backdrop-filter: none; -webkit-backdrop-filter: none;   /* sonst wäre das Menü im Header gefangen */
+  --logo-a: #ffffff; --logo-b: #cfc8e3;
+}
+.brand, .burger { position: relative; z-index: 2; }
+.menu-open .burger { background: var(--lilac); border-color: var(--lilac); color: var(--plum-900); }
+
+.menu {
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 1;
+  width: auto; height: 100dvh;
+  display: grid; align-content: center; gap: 2.5rem;
+  padding: calc(var(--header-h) + 2rem) max(1rem, calc((100vw - var(--wrap)) / 2 + 2rem)) 2.5rem;
+  background:
+    radial-gradient(50rem 30rem at 85% 0%, rgba(200, 184, 245, 0.16), transparent 60%),
+    var(--plum-900);
+  border: 0; border-radius: 0; box-shadow: none;
+  overflow-y: auto; overscroll-behavior: contain;
+  opacity: 1; transform: none; visibility: hidden;
+  clip-path: circle(0px at calc(100% - max(2rem, calc((100vw - var(--wrap)) / 2 + 4rem))) calc(var(--header-h) / 2));
+  transition: clip-path 450ms var(--ease-in-out), visibility 0s linear 450ms;
+}
+.menu-open .menu {
+  visibility: visible;
+  clip-path: circle(150vmax at calc(100% - max(2rem, calc((100vw - var(--wrap)) / 2 + 4rem))) calc(var(--header-h) / 2));
+  transition: clip-path 650ms var(--ease-in-out), visibility 0s;
+}
+@media (min-width: 56rem) { .menu { grid-template-columns: 1.6fr 1fr; align-items: end; column-gap: 4rem; } }
+
+.menu-list { counter-reset: menu; }
+.menu-list li { border-top: 1px solid var(--line-dark); }
+.menu-list li:last-child { border-bottom: 1px solid var(--line-dark); }
+.menu-list a {
+  counter-increment: menu;
+  display: flex; align-items: baseline; gap: 1.25rem; min-height: 0; padding: 0.6rem 0.25rem; border-radius: 0;
+  font-family: var(--font-display); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05;
+  font-size: clamp(2rem, 1.2rem + 3.6vw, 4.2rem); color: var(--white); background: none;
+}
+.menu-list a::before {
+  content: counter(menu, decimal-leading-zero);
+  font-family: var(--font); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.06em; color: var(--lilac); min-width: 1.75rem;
+}
+.menu-list a[aria-current="page"] { color: var(--lilac); background: none; }
+@media (hover: hover) and (pointer: fine) {
+  .menu-list a { transition: color 150ms ease, transform 250ms var(--ease-out); }
+  .menu-list a:hover { color: var(--lilac); background: none; transform: translateX(0.5rem); }
+}
+
+.menu-foot {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;
+  margin: 0; padding: 0; border: 0; font-size: 1.05rem;
+}
+.menu-foot > a { color: var(--white); font-family: var(--font-display); font-weight: 700; font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem); }
+.menu-foot > a:hover { color: var(--lilac); }
+.menu-address { color: var(--on-dark); margin-bottom: 1rem; }
+.menu-foot .social-link { color: var(--white); background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.28); }
+@media (hover: hover) and (pointer: fine) { .menu-foot .social-link:hover { background: var(--lilac); color: var(--plum-900); border-color: var(--lilac); } }
+
+/* Einträge erscheinen gestaffelt, nachdem der Kreis aufgegangen ist */
+.menu-list li, .menu-foot { opacity: 0; transform: translateY(18px); transition: opacity 150ms ease, transform 150ms ease; }
+.menu-open .menu-list li, .menu-open .menu-foot {
+  opacity: 1; transform: none;
+  transition: opacity 500ms ease, transform 600ms var(--ease-out);
+  transition-delay: calc(200ms + var(--i, 0) * 50ms);
+}
+.menu-open .menu-foot { transition-delay: 500ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .menu, .menu-open .menu { clip-path: none; transition: opacity 200ms ease, visibility 0s; opacity: 0; }
+  .menu-open .menu { opacity: 1; }
+  .menu-list li, .menu-foot { transform: none !important; }
+}
