@@ -281,18 +281,88 @@ FAQ = [
 ]
 
 
-TRUST_STRIP = """
-<section class="trust" aria-label="Bekannt aus">
-  <div class="wrap trust-inner">
-    <p class="trust-label">Berichtet in</p>
-    <ul class="trust-list">
-      <li>DZW <small>Die ZahnarztWoche</small></li>
-      <li>KN <small>Kieferorthopädie Nachrichten</small></li>
-      <li>ZKN <small>Mitteilungen</small></li>
-      <li>KFO Zeitung</li>
-      <li>BDK.info</li>
-      <li>GZM</li>
-    </ul>
+PRESS_LOGOS = [
+    ("dzw.svg", "DZW", "Die ZahnarztWoche", "dzw"),
+    ("oemus.svg", "OEMUS", "KN Kieferorthopädie Nachrichten", "oemus"),
+    ("zkn.svg", "ZKN", "Mitteilungen der Zahnärztekammer Niedersachsen", "zkn"),
+    ("bdk.png", "BDK", "BDK.info", "bdk"),
+    ("gzm.png", "GZM", "Ganzheitliche ZahnMedizin", "gzm"),
+    (None, "KFO Zeitung", "KFO Zeitung", "text"),
+]
+
+
+def trust_strip():
+    def items(hidden):
+        out = ""
+        for img, alt, caption, key in PRESS_LOGOS * 2:  # doppelt, damit auch breite Bildschirme gefüllt sind
+            mark = (f'<img src="/assets/img/presse/{img}" alt="{"" if hidden else e(alt)}" loading="lazy">'
+                    if img else f'<span class="wordmark">{e(alt)}</span>')
+            out += f'<li class="logo-item logo-item--{key}">{mark}<small>{e(caption)}</small></li>'
+        return out
+    return f"""
+<section class="trust" aria-label="Berichtet in">
+  <div class="wrap"><p class="trust-label">Berichtet in</p></div>
+  <div class="marquee">
+    <div class="marquee-track">
+      <ul class="marquee-set">{items(False)}</ul>
+      <ul class="marquee-set" aria-hidden="true">{items(True)}</ul>
+    </div>
+  </div>
+</section>
+"""
+
+
+HSCROLL_STORY = """<section class="hscroll" id="geschichte" aria-label="Geschichte">
+  <div class="hscroll-sticky">
+    <div class="hscroll-track">
+      <div class="h-intro">
+        <p class="kicker">Geschichte</p>
+        <h2>Von der Prager Stadtbibliothek zum 30. Symposium.</h2>
+        <p class="muted"><span class="pinned-only">Scrollen Sie weiter – die Zeitleiste fährt seitwärts.</span><span class="swipe-only">Wischen Sie seitwärts durch die Jahre.</span></p>
+      </div>
+      <ol class="h-list">
+{hist}
+      </ol>
+      <div class="h-outro">
+        <p>Alle Symposien und Seminare mit Flyern:</p>
+        <a class="btn" href="/archiv/">Zum Archiv</a>
+      </div>
+    </div>
+    <div class="hscroll-bar" aria-hidden="true"><span></span></div>
+  </div>
+</section>"""
+
+ARC_STORY = """
+<section class="arc-story" id="geschichte" aria-label="Geschichte">
+  <div class="arc-sticky">
+    <div class="wrap arc-head">
+      <p class="kicker">Geschichte</p>
+      <h2>Ein Bogen über 26 Jahre.</h2>
+    </div>
+    <div class="arc-stage">
+      <svg class="arc-svg" viewBox="0 0 1000 420" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+        <path class="arc-ghost" d="M 70 380 C 230 -90, 770 -90, 930 380"/>
+        <path class="arc-line" d="M 70 380 C 230 -90, 770 -90, 930 380" pathLength="1"/>
+        <circle class="arc-pin arc-pin--start" cx="70" cy="380" r="11"/>
+        <circle class="arc-pin arc-pin--end" cx="930" cy="380" r="11"/>
+        <circle class="arc-dot" cx="70" cy="380" r="7"/>
+      </svg>
+      <div class="arc-counter" aria-hidden="true">
+        <span class="arc-year">2000</span>
+        <span class="arc-count"><b>1</b>. Symposium</span>
+      </div>
+      <div class="arc-point arc-point--start">
+        <span class="arc-point-year">2000</span>
+        <strong>1. Symposium</strong>
+        <span>Prag, Stadtbibliothek</span>
+      </div>
+      <div class="arc-point arc-point--end">
+        <span class="arc-point-year">2026</span>
+        <strong>30. Symposium</strong>
+        <span>Prag, Hotel Josef</span>
+        <a class="more" href="/archiv/">Alle Jahre im Archiv <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
   </div>
 </section>
 """
@@ -341,6 +411,7 @@ def page_start():
         for q, a in FAQ
     )
 
+    history = ARC_STORY if VARIANT else HSCROLL_STORY.replace("{hist}", hist)
     body = f"""
 <section class="hero" id="start">
   <div class="hero-media" aria-hidden="true">
@@ -368,7 +439,7 @@ def page_start():
   </div>
 </section>
 
-{TRUST_STRIP if VARIANT else ""}
+{trust_strip() if VARIANT else ""}
 <section class="block" id="angebot">
   <div class="wrap">
     <p class="kicker reveal">Unser Angebot</p>
@@ -408,25 +479,7 @@ def page_start():
   </div>
 </section>
 
-<section class="hscroll" id="geschichte" aria-label="Geschichte">
-  <div class="hscroll-sticky">
-    <div class="hscroll-track">
-      <div class="h-intro">
-        <p class="kicker">Geschichte</p>
-        <h2>Von der Prager Stadtbibliothek zum 30. Symposium.</h2>
-        <p class="muted"><span class="pinned-only">Scrollen Sie weiter – die Zeitleiste fährt seitwärts.</span><span class="swipe-only">Wischen Sie seitwärts durch die Jahre.</span></p>
-      </div>
-      <ol class="h-list">
-{hist}
-      </ol>
-      <div class="h-outro">
-        <p>Alle Symposien und Seminare mit Flyern:</p>
-        <a class="btn" href="/archiv/">Zum Archiv</a>
-      </div>
-    </div>
-    <div class="hscroll-bar" aria-hidden="true"><span></span></div>
-  </div>
-</section>
+{history}
 
 <section class="block" id="referenten">
   <div class="wrap">

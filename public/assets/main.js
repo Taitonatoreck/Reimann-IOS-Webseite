@@ -92,6 +92,35 @@
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
   window.addEventListener("load", remeasure);
 
+  // Geschichte als Bogen: zeichnet sich beim Scrollen von 2000 bis 2026
+  var arcs = Array.prototype.slice.call(document.querySelectorAll(".arc-story")).map(function (sec) {
+    var line = sec.querySelector(".arc-line");
+    return {
+      sec: sec, line: line, dot: sec.querySelector(".arc-dot"),
+      year: sec.querySelector(".arc-year"), count: sec.querySelector(".arc-count b"),
+      len: line ? line.getTotalLength() : 0
+    };
+  });
+  var moveArcs = function () {
+    if (reduce) { arcs.forEach(function (a) { a.sec.classList.add("is-done"); }); return; }
+    arcs.forEach(function (a) {
+      var r = a.sec.getBoundingClientRect();
+      var span = a.sec.offsetHeight - window.innerHeight;
+      // erst ab 10 % starten, bei 85 % fertig – kurze Ruhezonen am Anfang und Ende
+      var raw = span > 0 ? -r.top / span : 0;
+      var p = Math.min(1, Math.max(0, (raw - 0.1) / 0.75));
+      a.line.style.strokeDashoffset = String(1 - p);
+      if (a.dot && a.len) {
+        var pt = a.line.getPointAtLength(p * a.len);
+        a.dot.setAttribute("cx", pt.x.toFixed(1));
+        a.dot.setAttribute("cy", pt.y.toFixed(1));
+      }
+      if (a.year) a.year.textContent = String(Math.round(2000 + 26 * p));
+      if (a.count) a.count.textContent = String(Math.round(1 + 29 * p));
+      a.sec.classList.toggle("is-done", p >= 0.999);
+    });
+  };
+
   var ticking = false;
   var onScroll = function () {
     if (ticking) return;
@@ -99,6 +128,7 @@
     requestAnimationFrame(function () {
       ticking = false;
       moveTracks();
+      moveArcs();
       var y = window.scrollY;
       if (header) header.classList.toggle("is-scrolled", y > 24);
       if (heroImg && !reduce && y < window.innerHeight * 1.2) {

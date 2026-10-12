@@ -40,13 +40,94 @@ h3 { font-weight: 700; }
 .faq-item summary { min-height: 3.5rem; }
 summary, .burger, .btn, .social-link { cursor: pointer; }
 
-/* Proof-Leiste direkt nach dem Hero */
-.trust { border-bottom: 1px solid var(--line); background: var(--white); }
-.trust-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2.5rem; padding-block: 1.5rem; }
-.trust-label { margin: 0; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--label); }
-.trust-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.75rem 2.25rem; }
-.trust-list li { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; color: var(--ink); letter-spacing: -0.01em; }
-.trust-list small { font-family: var(--font); font-weight: 500; font-size: 0.8rem; color: var(--label); letter-spacing: 0; margin-left: 0.25rem; }
+/* Proof-Leiste nach dem Hero: Logo-Laufband (läuft von links nach rechts) */
+.trust { border-bottom: 1px solid var(--line); background: var(--white); padding-block: 1.75rem 2rem; overflow: hidden; }
+.trust-label { margin: 0 0 1.25rem; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--label); }
+.marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.marquee-track { display: flex; width: max-content; }
+.marquee-set { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; }
+.logo-item {
+  flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.55rem;
+  width: clamp(11rem, 16vw, 15rem); padding-inline: 1rem; text-align: center;
+}
+.logo-item img, .logo-item .wordmark {
+  display: block; width: auto; max-width: 100%;
+  filter: grayscale(1); opacity: 0.72; transition: filter 200ms ease, opacity 200ms ease;
+}
+.logo-item--dzw img { height: 2.4rem; }
+.logo-item--oemus img { height: 1.6rem; margin-block: 0.4rem; }
+.logo-item--zkn img { height: 3rem; }
+.logo-item--bdk img { height: 3.1rem; }
+.logo-item--gzm img { height: 3.2rem; }
+.logo-item .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1.55rem; letter-spacing: -0.02em; color: var(--ink); line-height: 3rem; }
+.logo-item small { font-size: 0.75rem; line-height: 1.3; color: var(--label); max-width: 12rem; }
+@media (hover: hover) and (pointer: fine) { .logo-item:hover img, .logo-item:hover .wordmark { filter: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .marquee-track { animation: marquee-ltr 60s linear infinite; }
+  .marquee:hover .marquee-track, .marquee:focus-within .marquee-track { animation-play-state: paused; }
+}
+/* Inhalt wandert nach rechts: Start bei -50 %, Ende bei 0 – zweite Hälfte ist eine exakte Kopie */
+@keyframes marquee-ltr { from { transform: translate3d(-50%, 0, 0); } to { transform: translate3d(0, 0, 0); } }
+@media (prefers-reduced-motion: reduce) {
+  .marquee { -webkit-mask-image: none; mask-image: none; }
+  .marquee-track { width: auto; }
+  .marquee-set[aria-hidden="true"], .marquee-set .logo-item:nth-child(n+7) { display: none; }
+  .marquee-set { flex-wrap: wrap; justify-content: center; row-gap: 1.5rem; }
+}
+
+/* Geschichte als Motion-Graphic: ein Bogen spannt sich beim Scrollen von 2000 bis 2026 */
+.arc-story { position: relative; height: 230vh; background: var(--brand-soft); }
+.arc-sticky {
+  position: sticky; top: 0; height: 100svh; min-height: 32rem; overflow: hidden;
+  display: flex; flex-direction: column; padding-top: calc(var(--header-h) + clamp(1.5rem, 4vh, 3rem));
+}
+.arc-head h2 { margin: 0; }
+.arc-stage { position: relative; flex: 1; width: 100%; max-width: 68rem; margin: 0 auto; padding: 1rem 1rem 0; min-height: 0; }
+.arc-svg { display: block; width: 100%; height: auto; max-height: 62svh; overflow: visible; margin: 0 auto; }
+.arc-ghost { fill: none; stroke: var(--brand); stroke-opacity: 0.12; stroke-width: 2; stroke-dasharray: 2 10; stroke-linecap: round; }
+.arc-line { fill: none; stroke: var(--brand); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.js .arc-line { stroke-dashoffset: 1; }
+.arc-pin { fill: var(--white); stroke: var(--brand); stroke-width: 5; transition: fill 300ms ease; }
+.arc-pin--start { fill: var(--brand); }
+.arc-story.is-done .arc-pin--end { fill: var(--brand); }
+.arc-dot { fill: var(--lilac); stroke: var(--brand); stroke-width: 3; }
+.no-arc .arc-dot { display: none; }
+
+.arc-counter {
+  position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; text-align: center; pointer-events: none;
+}
+.arc-year { font-family: var(--font-display); font-weight: 800; font-size: clamp(3rem, 2rem + 6vw, 7rem); line-height: 0.95; letter-spacing: -0.04em; color: var(--brand); font-variant-numeric: tabular-nums; }
+.arc-count { font-size: 1rem; color: var(--ink-2); margin-top: 0.4rem; }
+.arc-count b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.arc-point { position: absolute; bottom: 0; display: flex; flex-direction: column; gap: 0.1rem; max-width: 15rem; font-size: 0.95rem; color: var(--ink-2); }
+.arc-point--start { left: 1rem; }
+.arc-point--end { right: 1rem; text-align: right; align-items: flex-end; }
+.arc-point-year { font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; line-height: 1.1; color: var(--ink); }
+.arc-point strong { color: var(--ink); }
+.arc-point--end .more { margin-top: 0.5rem; }
+.js .arc-point--end { opacity: 0.35; transition: opacity 400ms ease; }
+.arc-story.is-done .arc-point--end { opacity: 1; }
+@media (max-width: 40rem) {
+  .arc-story { height: 200vh; }
+  .arc-point { position: static; max-width: none; }
+  .arc-stage { display: flex; flex-direction: column; }
+  .arc-points-row { display: flex; justify-content: space-between; }
+  .arc-counter { top: 26%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arc-story { height: auto; }
+  .arc-sticky { position: relative; height: auto; padding-bottom: 4rem; }
+  .js .arc-line { stroke-dashoffset: 0; }
+  .js .arc-point--end { opacity: 1; }
+  .arc-dot, .arc-counter { display: none; }
+}
 
 /* Karten: ruhige Tiefe statt Rahmen-Look */
 .offer { box-shadow: 0 1px 2px rgba(28, 26, 34, 0.04); }
