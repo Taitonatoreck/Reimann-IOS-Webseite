@@ -9,6 +9,7 @@
   var burger = document.querySelector(".burger");
   var menu = document.getElementById("menu");
   var open = false;
+  var keyboardOpen = false;
 
   function setOpen(next, restoreFocus) {
     if (!burger || !menu || next === open) return;
@@ -18,7 +19,7 @@
     burger.querySelector(".burger-label").textContent = open ? "Schließen" : "Menü";
     // Inhalt hinter dem Menü für Tastatur und Screenreader sperren, solange es offen ist
     Array.prototype.forEach.call(document.querySelectorAll("main, footer, .skip"), function (el) { el.inert = open; });
-    if (open) {
+    if (open && keyboardOpen) {
       var first = menu.querySelector("a");
       if (first) setTimeout(function () { first.focus({ preventScroll: true }); }, 80);
     } else if (restoreFocus) burger.focus({ preventScroll: true });
@@ -27,6 +28,7 @@
   if (burger && menu) {
     burger.addEventListener("click", function (e) {
       e.stopPropagation();
+      keyboardOpen = e.detail === 0; // per Tastatur (Enter/Leertaste) statt per Maus/Finger
       setOpen(!open, false);
     });
     document.addEventListener("click", function (e) {
